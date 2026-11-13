@@ -113,7 +113,7 @@ export function Compare() {
             <div className="h-72">
               <ResponsiveContainer>
                 <LineChart data={chart} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                  <CartesianGrid stroke="#D5F5E4" vertical={false} />
+                  <CartesianGrid vertical={false} />
                   <XAxis dataKey="time" tickFormatter={(t: string) => (t.endsWith('T00:00') ? dayLabel(t) : hourLabel(t))} minTickGap={20} />
                   <YAxis allowDecimals={false} />
                   <Tooltip

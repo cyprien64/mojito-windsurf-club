@@ -13,7 +13,7 @@ import { SPOTS } from '../config/spots';
 
 const LOCAL_KEY = 'mwc-settings:v1';
 
-export type SettingsSource = 'local' | 'club' | 'default';
+export type SettingsSource = 'local' | 'remote' | 'club' | 'default';
 
 function isValidSpotConfig(c: any): c is SpotWindConfig {
   return (
@@ -42,7 +42,7 @@ export function normalizeSettings(raw: any): ClubSettings {
   const spots = { ...base.spots };
   for (const s of SPOTS) {
     const c = raw.spots?.[s.id];
-    if (isValidSpotConfig(c)) spots[s.id] = { ...c, notes: typeof c.notes === 'string' ? c.notes : '' };
+    if (isValidSpotConfig(c)) spots[s.id] = { ...c, notes: typeof c.notes === 'string' ? c.notes : '', useStation: !!c.useStation };
   }
   return {
     version: 1,

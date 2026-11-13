@@ -1,7 +1,7 @@
 // Service météo — API Open-Meteo (https://open-meteo.com), gratuite et sans clé
 // pour un usage non commercial. Toutes les vitesses sont demandées en nœuds.
 
-import type { MarineCurrent, CurrentWeather, DailySeries, Fetched, HourlySeries, ModelRunInfo, SpotDefinition, SpotModels, SpotWeather } from '../types';
+import type { TideEvent, TideSeries, MarineCurrent, CurrentWeather, DailySeries, Fetched, HourlySeries, ModelRunInfo, SpotDefinition, SpotModels, SpotWeather } from '../types';
 import { cached } from './cache';
 import { FORECAST_TTL_MS, MODELS_TTL_MS } from '../config/scoring';
 import { WEATHER_MODELS } from '../config/models';
@@ -54,6 +54,9 @@ const HOURLY_VARS = [
   'precipitation',
   'precipitation_probability',
   'cloud_cover',
+  'cloud_cover_low',
+  'cloud_cover_mid',
+  'cloud_cover_high',
   'wind_speed_10m',
   'wind_direction_10m',
   'wind_gusts_10m',
@@ -69,6 +72,7 @@ const DAILY_VARS = [
   'wind_gusts_10m_max',
   'wind_direction_10m_dominant',
   'weather_code',
+  'cloud_cover_mean',
 ];
 
 const arr = (v: unknown, n: number): (number | null)[] => (Array.isArray(v) ? (v as (number | null)[]) : new Array(n).fill(null));
@@ -99,6 +103,9 @@ function parseLocation(spotId: string, d: any): SpotWeather {
     precipitation: arr(h.precipitation, n),
     precipitationProbability: arr(h.precipitation_probability, n),
     cloudCover: arr(h.cloud_cover, n),
+    cloudLow: arr(h.cloud_cover_low, n),
+    cloudMid: arr(h.cloud_cover_mid, n),
+    cloudHigh: arr(h.cloud_cover_high, n),
     windSpeed: arr(h.wind_speed_10m, n),
     windDirection: arr(h.wind_direction_10m, n),
     windGusts: arr(h.wind_gusts_10m, n),
@@ -118,6 +125,7 @@ function parseLocation(spotId: string, d: any): SpotWeather {
     gustMax: arr(dd.wind_gusts_10m_max, m),
     windDirectionDominant: arr(dd.wind_direction_10m_dominant, m),
     weatherCode: arr(dd.weather_code, m),
+    cloudMean: arr(dd.cloud_cover_mean, m),
   };
   const hourKey = current.time ? current.time.slice(0, 13) + ':00' : '';
   let nowIndex = time.indexOf(hourKey);
@@ -130,7 +138,7 @@ function parseLocation(spotId: string, d: any): SpotWeather {
  * et les prévisions (7 j) de tous les spots. Mis en cache 15 min.
  */
 export async function fetchAllSpotsWeather(spots: SpotDefinition[], force = false): Promise<Fetched<Record<string, SpotWeather>>> {
-  const key = `forecast:v1:${spots.map((s) => `${s.id}@${s.lat},${s.lon}`).join('|')}`;
+  const key = `forecast:v2:${spots.map((s) => `${s.id}@${s.lat},${s.lon}`).join('|')}`;
   return cached(
     key,
     FORECAST_TTL_MS,
@@ -259,6 +267,43 @@ export async function fetchMarine(point: { lat: number; lon: number }, force = f
         wavePeriod: num(c.wave_period),
         swellHeight: num(c.swell_wave_height),
       };
+    },
+    force,
+  );
+}
+
+/**
+ * Hauteur de la mer (marée + surcote) heure par heure — Open-Meteo Marine,
+ * variable `sea_level_height_msl`. Les pleines et basses mers sont repérées
+ * comme maxima / minima locaux : heures approximatives (pas horaire),
+ * coefficient non disponible.
+ */
+export async function fetchTides(point: { lat: number; lon: number }, force = false): Promise<Fetched<TideSeries>> {
+  return cached(
+    `tides:v1:${point.lat},${point.lon}`,
+    60 * 60 * 1000,
+    async () => {
+      const params = new URLSearchParams({
+        latitude: String(point.lat),
+        longitude: String(point.lon),
+        hourly: 'sea_level_height_msl',
+        timezone: TIMEZONE,
+        past_days: '1',
+        forecast_days: '3',
+      });
+      const body = await getJson(`https://marine-api.open-meteo.com/v1/marine?${params}`);
+      const time: string[] = body.hourly?.time ?? [];
+      const height = arr(body.hourly?.sea_level_height_msl, time.length);
+      const events: TideEvent[] = [];
+      for (let i = 1; i < time.length - 1; i++) {
+        const a = height[i - 1];
+        const b = height[i];
+        const c = height[i + 1];
+        if (a == null || b == null || c == null) continue;
+        if (b > a && b >= c) events.push({ time: time[i], type: 'haute', height: b });
+        else if (b < a && b <= c) events.push({ time: time[i], type: 'basse', height: b });
+      }
+      return { time, height, events };
     },
     force,
   );

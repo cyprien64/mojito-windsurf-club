@@ -54,3 +54,17 @@ export function dateTime(d: Date | number): string {
   const date = typeof d === 'number' ? new Date(d) : d;
   return date.toLocaleString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
+
+/** Nébulosité en octas (0 à 8), unité des météorologues. */
+export function octas(pct: number | null | undefined): number | null {
+  return pct == null ? null : Math.round((pct / 100) * 8);
+}
+
+export function cloudLabel(pct: number | null | undefined): string {
+  if (pct == null) return '—';
+  if (pct < 12) return 'Ciel clair';
+  if (pct < 38) return 'Peu nuageux';
+  if (pct < 63) return 'Partiellement nuageux';
+  if (pct < 88) return 'Nuageux';
+  return 'Couvert';
+}

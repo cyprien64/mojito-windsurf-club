@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { ClubSettings, ModelRunInfo, RiderProfile, SpotModels, SpotWeather } from '../types';
+import type { ClubSettings, ModelRunInfo, RiderProfile, SpotModels, SpotWeather, StationReading } from '../types';
+import { fetchStations, isFresh, withContext } from '../services/stations';
+import { backendEnabled, fetchRemoteSettings, listReports, type SessionReport } from '../services/backend';
 import { DEFAULT_RIDER } from '../lib/gear';
 import { SPOTS, SPOT_BY_ID, DEFAULT_SPOT_ID } from '../config/spots';
 import { buildDefaultSettings, REFRESH_INTERVAL_MS } from '../config/scoring';
@@ -8,6 +10,7 @@ import {
   clearLocalSettings,
   fetchClubSettings,
   loadLocalSettings,
+  normalizeSettings,
   saveLocalSettings,
   type SettingsSource,
 } from '../services/settings';
@@ -45,7 +48,19 @@ interface AppContextValue {
   toggleFavorite: (id: string) => void;
   rider: RiderProfile;
   setRider: (r: RiderProfile) => void;
+
+  /** Balises proches de chaque spot, triées par distance. */
+  stations: Record<string, StationReading[]>;
+  theme: Theme;
+  setTheme: (t: Theme) => void;
+  remoteSettings: ClubSettings | null;
+  reloadRemoteSettings: () => void;
+  reports: SessionReport[];
+  reportsError: string | null;
+  reloadReports: () => void;
 }
+
+export type Theme = 'auto' | 'light' | 'dark';
 
 const Ctx = createContext<AppContextValue | null>(null);
 
@@ -72,8 +87,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchClubSettings().then(setClubSettings);
   }, []);
-  const settings = localSettings ?? clubSettings ?? buildDefaultSettings();
-  const settingsSource: SettingsSource = localSettings ? 'local' : clubSettings ? 'club' : 'default';
+  const [remoteSettings, setRemoteSettings] = useState<ClubSettings | null>(null);
+  const reloadRemoteSettings = useCallback(() => {
+    if (!backendEnabled) return;
+    fetchRemoteSettings()
+      .then((r) => setRemoteSettings(r ? normalizeSettings(r.data) : null))
+      .catch(() => undefined);
+  }, []);
+  useEffect(reloadRemoteSettings, [reloadRemoteSettings]);
+  const settings = localSettings ?? remoteSettings ?? clubSettings ?? buildDefaultSettings();
+  const settingsSource: SettingsSource = localSettings ? 'local' : remoteSettings ? 'remote' : clubSettings ? 'club' : 'default';
 
   const saveSettings = useCallback((s: ClubSettings) => {
     saveLocalSettings(s);
@@ -118,19 +141,60 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, [load]);
 
-  const refresh = useCallback(() => load(true), [load]);
+  // ---------- Balises (vent mesuré) ----------
+  const [rawStations, setRawStations] = useState<Record<number, StationReading>>({});
+  const [stationTick, setStationTick] = useState(0);
+  const loadStations = useCallback((force: boolean) => {
+    const ids = SPOTS.flatMap((s) => s.stations ?? []);
+    if (!ids.length) return;
+    fetchStations(ids, force).then((r) => {
+      setRawStations(r);
+      setStationTick((t) => t + 1);
+    });
+  }, []);
+  useEffect(() => {
+    loadStations(false);
+    const id = window.setInterval(() => loadStations(false), 5 * 60 * 1000);
+    return () => window.clearInterval(id);
+  }, [loadStations]);
+  const stations = useMemo(() => {
+    const out: Record<string, StationReading[]> = {};
+    for (const s of SPOTS) {
+      out[s.id] = (s.stations ?? [])
+        .map((id) => rawStations[id])
+        .filter((x): x is StationReading => !!x)
+        .map((x) => withContext(x, s.lat, s.lon))
+        .sort((a, b) => (a.distanceKm ?? 99) - (b.distanceKm ?? 99));
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawStations, stationTick]);
+
+  const refresh = useCallback(() => {
+    load(true);
+    loadStations(true);
+  }, [load, loadStations]);
 
   // ---------- Évaluations ----------
   const evaluations = useMemo(() => {
     const out: Record<string, SpotEvaluation> = {};
     if (!weather.data) return out;
     for (const s of SPOTS) {
-      const w = weather.data[s.id];
+      let w = weather.data[s.id];
       if (!w) continue;
-      out[s.id] = evaluateSpot(s.id, w, settings.spots[s.id] ?? s.defaults, settings, models.data?.[s.id]);
+      const cfg = settings.spots[s.id] ?? s.defaults;
+      const st = stations[s.id]?.[0];
+      const useStation = !!cfg.useStation && !!st && isFresh(st);
+      if (useStation && st) {
+        // Vent actuel remplacé par la mesure réelle de la balise (option Admin).
+        w = { ...w, current: { ...w.current, windSpeed: st.avg, windGusts: st.max ?? w.current.windGusts, windDirection: st.heading ?? w.current.windDirection } };
+      }
+      const ev = evaluateSpot(s.id, w, cfg, settings, models.data?.[s.id]);
+      ev.windSource = useStation ? 'balise' : 'modèle';
+      out[s.id] = ev;
     }
     return out;
-  }, [weather.data, models.data, settings]);
+  }, [weather.data, models.data, settings, stations]);
 
   const ranking = useMemo(() => rankEvaluations(Object.values(evaluations)), [evaluations]);
 
@@ -170,6 +234,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
     writeLS('mwc-rider', r);
   }, []);
 
+  // ---------- Thème ----------
+  const [theme, setThemeState] = useState<Theme>(() => readLS<Theme>('mwc-theme-v', 'auto'));
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const apply = () => document.documentElement.classList.toggle('dark', theme === 'dark' || (theme === 'auto' && mq.matches));
+    apply();
+    try {
+      localStorage.setItem('mwc-theme', theme);
+    } catch {
+      /* ignore */
+    }
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, [theme]);
+  const setTheme = useCallback((t: Theme) => {
+    setThemeState(t);
+    writeLS('mwc-theme-v', t);
+  }, []);
+
+  // ---------- Retours de session des membres ----------
+  const [reports, setReports] = useState<SessionReport[]>([]);
+  const [reportsError, setReportsError] = useState<string | null>(null);
+  const reloadReports = useCallback(() => {
+    if (!backendEnabled) return;
+    listReports()
+      .then((r) => {
+        setReports(r);
+        setReportsError(null);
+      })
+      .catch((e: Error) => setReportsError(e.message));
+  }, []);
+  useEffect(() => {
+    reloadReports();
+    const id = window.setInterval(reloadReports, 3 * 60 * 1000);
+    return () => window.clearInterval(id);
+  }, [reloadReports]);
+
   const value: AppContextValue = {
     settings,
     settingsSource,
@@ -188,6 +289,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleFavorite,
     rider,
     setRider,
+    stations,
+    theme,
+    setTheme,
+    remoteSettings,
+    reloadRemoteSettings,
+    reports,
+    reportsError,
+    reloadReports,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

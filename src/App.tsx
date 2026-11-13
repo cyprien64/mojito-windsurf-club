@@ -12,6 +12,12 @@ import { HistoryPage } from './pages/HistoryPage';
 import { Alerts } from './pages/Alerts';
 import { Admin } from './pages/Admin';
 import { GearPage } from './pages/GearPage';
+import { Weekend } from './pages/Weekend';
+import { Sessions } from './pages/Sessions';
+import { lazy, Suspense } from 'react';
+
+// La carte (Leaflet) n'est chargée que si on l'ouvre.
+const MapPage = lazy(() => import('./pages/MapPage').then((m) => ({ default: m.MapPage })));
 
 export default function App() {
   return (
@@ -28,6 +34,16 @@ export default function App() {
             <Route path="comparer" element={<Compare />} />
             <Route path="historique/:spotId?" element={<HistoryPage />} />
             <Route path="materiel/:spotId?" element={<GearPage />} />
+            <Route path="weekend" element={<Weekend />} />
+            <Route path="sessions" element={<Sessions />} />
+            <Route
+              path="carte"
+              element={
+                <Suspense fallback={<p className="text-sm">Chargement de la carte…</p>}>
+                  <MapPage />
+                </Suspense>
+              }
+            />
             <Route path="alertes" element={<Alerts />} />
             <Route path="admin" element={<Admin />} />
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -7,11 +7,16 @@ import { SpotImage } from './SpotImage';
 import { RatingBadge, ScoreRing } from './RatingBadge';
 import { WindArrow } from './WindArrow';
 import { cardinal, toKmh } from '../lib/wind';
-import { fmt, hhmm, relativeDay } from '../lib/format';
+import { fmt, hhmm, octas, relativeDay } from '../lib/format';
+import { WeatherIcon } from './WeatherIcon';
+import { weatherInfo } from '../lib/weatherCodes';
+import { StationLine } from './Station';
 import { Skeleton } from './States';
 
 export function SpotCard({ spot, ev, isBest, todayIso }: { spot: SpotDefinition; ev?: SpotEvaluation; isBest?: boolean; todayIso?: string }) {
-  const { favorites, toggleFavorite, setSpotId } = useApp();
+  const { favorites, toggleFavorite, setSpotId, weather: wx, stations } = useApp();
+  const weather = wx.data?.[spot.id];
+  const station = stations[spot.id]?.[0];
   const navigate = useNavigate();
   const fav = favorites.includes(spot.id);
   const open = () => {
@@ -31,7 +36,7 @@ export function SpotCard({ spot, ev, isBest, todayIso }: { spot: SpotDefinition;
     >
       <div className="relative">
         <SpotImage spot={spot} className="h-36 sm:h-40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink-900/70 via-ink-900/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
         {isBest && (
           <span className="chip absolute left-3 top-3 bg-lemon-400 text-ink-900 shadow-card">🌴 Meilleur spot du moment</span>
         )}
@@ -93,6 +98,13 @@ export function SpotCard({ spot, ev, isBest, todayIso }: { spot: SpotDefinition;
                 </dd>
               </div>
             </dl>
+            {weather && (
+              <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-700">
+                <WeatherIcon code={weather.current.weatherCode} isDay={weather.current.isDay} className="h-4 w-4" />
+                {weatherInfo(weather.current.weatherCode, weather.current.isDay).label} · nébulosité {fmt(weather.current.cloudCover)} % ({octas(weather.current.cloudCover)}/8)
+              </p>
+            )}
+            {station && <StationLine station={station} />}
             <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-ink-800">
               {ev.bestWindow ? (
                 <>

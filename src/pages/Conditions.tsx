@@ -13,23 +13,29 @@ import { SafetyNotice } from '../components/SafetyNotice';
 import { SpotImage } from '../components/SpotImage';
 import { WeatherIcon } from '../components/WeatherIcon';
 import { beaufort, cardinal, cardinalLong, toKmh } from '../lib/wind';
-import { fmt, hhmm, hourLabel, relativeDay } from '../lib/format';
+import { cloudLabel, fmt, hhmm, hourLabel, octas, relativeDay } from '../lib/format';
 import { LEVEL_META, SECTOR_RATING_META, levelFromScore } from '../lib/scoring';
 import { weatherInfo } from '../lib/weatherCodes';
 import { useGear } from '../hooks/useGear';
 import { GearPanel } from '../components/Gear';
 import { MarineCard } from '../components/MarineCard';
+import { StationCard } from '../components/Station';
+import { TideCard } from '../components/TideCard';
+import { ShareButton } from '../components/Share';
+import { isOnWater } from './Sessions';
 
 const STRENGTH_COLOR: Record<string, string> = { faible: '#7BDCAE', modéré: '#3DBE6A', fort: '#F2994A', 'très fort': '#E5484D' };
 
 export function Conditions() {
   const spot = useSpotRoute();
   const navigate = useNavigate();
-  const { weather, evaluations, settings, refresh } = useApp();
+  const { weather, evaluations, settings, refresh, stations, reports } = useApp();
   const w = weather.data?.[spot.id];
   const ev = evaluations[spot.id];
   const cfg = settings.spots[spot.id] ?? spot.defaults;
   const gear = useGear(spot.id);
+  const spotStations = stations[spot.id] ?? [];
+  const onWaterHere = reports.filter((r) => r.spot_id === spot.id && isOnWater(r));
 
   const header = (
     <div className="space-y-3">
@@ -65,8 +71,17 @@ export function Conditions() {
             <MapPin className="h-4 w-4" /> {spot.location}
           </p>
         </div>
-        <DataStamp fetchedAt={weather.fetchedAt} modelTime={c.time} stale={weather.stale} loading={weather.loading} onRefresh={refresh} />
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+          <ShareButton ev={ev} />
+          <DataStamp fetchedAt={weather.fetchedAt} modelTime={c.time} stale={weather.stale} loading={weather.loading} onRefresh={refresh} />
+        </div>
       </section>
+
+      {onWaterHere.length > 0 && (
+        <Link to="/sessions" className="flex items-center gap-2 rounded-xl bg-lemon-300/50 px-4 py-2.5 text-sm font-bold text-ink-900">
+          🏄 {onWaterHere.length} membre{onWaterHere.length > 1 ? 's' : ''} sur l’eau en ce moment : {onWaterHere.map((r) => r.author).join(', ')}
+        </Link>
+      )}
 
       {ev.warnings.map((x) => (
         <WarningBanner key={x}>{x}</WarningBanner>
@@ -107,7 +122,9 @@ export function Conditions() {
             </div>
           </div>
           <p className="border-t border-mint-100 px-4 py-2 text-[11px] text-ink-700/70">
-            Valeurs modélisées (Open-Meteo, meilleur modèle disponible) — pas une mesure de station.
+            {ev.windSource === 'balise'
+              ? 'Note calculée avec le vent mesuré par la balise (option Admin) ; valeurs ci-dessus = modèle Open-Meteo.'
+              : 'Valeurs modélisées (Open-Meteo, meilleur modèle disponible) — pas une mesure de station.'}
           </p>
         </div>
 
@@ -182,9 +199,15 @@ export function Conditions() {
               Mon profil & détails →
             </Link>
           </div>
-          <GearPanel advice={(gear.best ?? gear.now)!} />
+          <GearPanel advice={(gear.best ?? gear.now)!} spotId={spot.id} />
         </section>
       )}
+
+      {spotStations.length > 0 && (
+        <StationCard stations={spotStations} modelSpeed={c.windSpeed} modelDir={c.windDirection} usedForScore={ev.windSource === 'balise'} />
+      )}
+
+      {spot.tides && <TideCard spot={spot} nowIso={c.time} windowStart={ev.bestWindow?.start} windowEnd={ev.bestWindow?.end} />}
 
       {spot.marine && <MarineCard spotId={spot.id} />}
 
@@ -200,11 +223,15 @@ export function Conditions() {
           {next12.map((h) => {
             const lvl = h.blocked ? 'blocked' : levelFromScore(h.score);
             return (
-              <div key={h.time} className="w-[62px] shrink-0 rounded-xl border border-mint-100 bg-white p-1.5 text-center">
+              <div key={h.time} className="w-[62px] shrink-0 rounded-xl border border-mint-100 bg-cream-50 p-1.5 text-center">
                 <p className="text-[11px] font-bold text-ink-700">{hourLabel(h.time)}</p>
                 <WindArrow deg={h.dir} size={18} className="mx-auto my-1 text-mint-700" />
                 <p className="tabular text-base font-extrabold leading-none">{fmt(h.speed)}</p>
                 <p className="tabular text-[10px] text-ink-700/70">raf. {fmt(h.gust)}</p>
+                <p className="tabular flex items-center justify-center gap-0.5 text-[10px] text-ink-700/70">
+                  <Cloud className="h-3 w-3" />
+                  {fmt(w.hourly.cloudCover[h.index])}%
+                </p>
                 <div className="mx-auto mt-1 h-1.5 w-full rounded-full" style={{ background: LEVEL_META[lvl].color, opacity: h.daylight ? 1 : 0.4 }} />
               </div>
             );
@@ -221,7 +248,12 @@ export function Conditions() {
           <StatTile icon={<Gauge className="h-4 w-4 text-mint-700" />} label="Pression" value={`${fmt(c.pressure)} hPa`} sub="Au niveau de la mer" />
           <StatTile icon={<Droplets className="h-4 w-4 text-mint-700" />} label="Humidité" value={`${fmt(c.humidity)} %`} />
           <StatTile icon={<Umbrella className="h-4 w-4 text-mint-700" />} label="Précipitations" value={`${fmt(c.precipitation, 1)} mm`} sub={`Cumul du jour ${fmt(w.daily.precipitationSum[di], 1)} mm`} />
-          <StatTile icon={<Cloud className="h-4 w-4 text-mint-700" />} label="Nuages" value={`${fmt(c.cloudCover)} %`} />
+          <StatTile
+            icon={<Cloud className="h-4 w-4 text-mint-700" />}
+            label="Nébulosité"
+            value={`${fmt(c.cloudCover)} % · ${octas(c.cloudCover) ?? '—'}/8`}
+            sub={`${cloudLabel(c.cloudCover)} · basse ${fmt(w.hourly.cloudLow[w.nowIndex])} %, moy. ${fmt(w.hourly.cloudMid[w.nowIndex])} %, haute ${fmt(w.hourly.cloudHigh[w.nowIndex])} %`}
+          />
           <StatTile icon={<Sunrise className="h-4 w-4 text-lemon-500" />} label="Lever du soleil" value={hhmm(w.daily.sunrise[di])} />
           <StatTile icon={<Sunset className="h-4 w-4 text-rate-mid" />} label="Coucher du soleil" value={hhmm(w.daily.sunset[di])} />
         </div>

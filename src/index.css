@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------- Palette (clair / sombre) ---------- */
+:root {
+  --mint-50: 238 251 244; --mint-100: 213 245 228; --mint-200: 172 235 203; --mint-300: 123 220 174; --mint-400: 76 201 143;
+  --mint-500: 43 176 119; --mint-600: 30 143 96; --mint-700: 25 114 78; --mint-800: 23 91 64; --mint-900: 19 75 54;
+  --cream-50: 255 253 247; --cream-100: 250 247 236; --cream-200: 242 237 219;
+  --ink-700: 28 74 58; --ink-800: 18 58 44; --ink-900: 11 42 32;
+  --night: 11 42 32;
+  --glow-a: rgba(191, 227, 74, 0.18);
+  --glow-b: rgba(76, 201, 143, 0.18);
+  color-scheme: light;
+}
+.dark {
+  --mint-50: 22 52 41; --mint-100: 28 66 51; --mint-200: 40 92 70;
+  --mint-700: 92 214 160; --mint-800: 140 228 186; --mint-900: 190 240 214;
+  --cream-50: 18 40 32; --cream-100: 11 28 22; --cream-200: 30 56 45;
+  --ink-700: 170 205 190; --ink-800: 210 232 222; --ink-900: 236 248 242;
+  --night: 30 143 96;
+  --glow-a: rgba(191, 227, 74, 0.06);
+  --glow-b: rgba(76, 201, 143, 0.08);
+  color-scheme: dark;
+}
+.dark .bg-red-50 { background-color: rgb(127 29 29 / 0.35); }
+.dark .bg-orange-50, .dark .bg-orange-100 { background-color: rgb(124 45 18 / 0.35); }
+.dark .bg-blue-50\/60 { background-color: rgb(30 58 138 / 0.3); }
+.dark .text-red-800 { color: rgb(254 202 202); }
+.dark .text-orange-800 { color: rgb(254 215 170); }
+.dark .recharts-default-tooltip { background-color: rgb(var(--cream-50)) !important; border-color: rgb(var(--mint-200)) !important; }
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
@@ -10,8 +38,8 @@
   body {
     @apply bg-cream-100 font-sans text-ink-900 antialiased;
     background-image:
-      radial-gradient(1200px 500px at 110% -10%, rgba(191, 227, 74, 0.18), transparent 60%),
-      radial-gradient(900px 500px at -20% 0%, rgba(76, 201, 143, 0.18), transparent 60%);
+      radial-gradient(1200px 500px at 110% -10%, var(--glow-a), transparent 60%),
+      radial-gradient(900px 500px at -20% 0%, var(--glow-b), transparent 60%);
     background-attachment: fixed;
     min-height: 100vh;
   }
@@ -37,7 +65,7 @@
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition active:scale-[.98] disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-mint-600 text-white shadow-card hover:bg-mint-700;
+    @apply btn bg-mint-600 text-white shadow-card hover:bg-mint-500;
   }
   .btn-ghost {
     @apply btn border border-mint-200 bg-cream-50 text-ink-800 hover:bg-mint-50;
@@ -53,7 +81,7 @@
     background-size: 800px 100%;
   }
   .input {
-    @apply w-full rounded-lg border border-mint-200 bg-white px-3 py-2 text-sm text-ink-900 outline-none focus:border-mint-500 focus:ring-2 focus:ring-mint-200;
+    @apply w-full rounded-lg border border-mint-200 bg-cream-50 px-3 py-2 text-sm text-ink-900 outline-none focus:border-mint-500 focus:ring-2 focus:ring-mint-200;
   }
 }
 
@@ -61,14 +89,45 @@
   padding-bottom: calc(env(safe-area-inset-bottom) + 0.25rem);
 }
 
-/* Recharts : texte des axes */
+/* Recharts */
 .recharts-cartesian-axis-tick-value {
   font-size: 11px;
-  fill: #1c4a3a;
-  opacity: 0.75;
+  fill: rgb(var(--ink-700));
+  opacity: 0.85;
+}
+.recharts-cartesian-grid line {
+  stroke: rgb(var(--mint-100)) !important;
+}
+.recharts-legend-item-text {
+  color: rgb(var(--ink-800)) !important;
 }
 .recharts-brush-texts {
   font-size: 10px;
+}
+
+/* ---------- Lisibilité sur téléphone ---------- */
+@media (max-width: 640px) {
+  html {
+    font-size: 17px; /* tout le texte et les espacements en rem grandissent */
+  }
+  .text-\[9px\], .text-\[10px\], .text-\[10\.5px\], .text-\[11px\] {
+    font-size: 12.5px !important;
+    line-height: 1.35;
+  }
+  .label {
+    font-size: 12px !important;
+  }
+  .recharts-cartesian-axis-tick-value {
+    font-size: 12.5px;
+  }
+  input, select, textarea {
+    font-size: 16px !important; /* évite le zoom automatique sur iPhone */
+  }
+}
+
+/* Leaflet en mode sombre : on assombrit les tuiles */
+.dark .leaflet-tile {
+  filter: brightness(0.75) contrast(1.1) saturate(0.8);
 }
 
 @media (prefers-reduced-motion: reduce) {

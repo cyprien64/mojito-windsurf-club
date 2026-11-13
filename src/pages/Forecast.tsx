@@ -27,7 +27,7 @@ import { WindArrow } from '../components/WindArrow';
 import { WeatherIcon } from '../components/WeatherIcon';
 import { RatingBadge } from '../components/RatingBadge';
 import { cardinal } from '../lib/wind';
-import { dayLabel, fmt, hhmm, hourLabel, relativeDay } from '../lib/format';
+import { cloudLabel, dayLabel, fmt, hhmm, hourLabel, octas, relativeDay } from '../lib/format';
 import { bestWindow, findWindows, levelFromScore, LEVEL_META, type SailWindow } from '../lib/scoring';
 
 type Mode = 'hourly' | 'daily';
@@ -48,7 +48,7 @@ function TooltipBox({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (
-    <div className="rounded-xl border border-mint-200 bg-white/95 px-3 py-2 text-xs shadow-lift">
+    <div className="rounded-xl border border-mint-200 bg-cream-50/95 px-3 py-2 text-xs shadow-lift">
       <p className="font-bold">
         {p.dayLabel} · {p.hour}
       </p>
@@ -63,6 +63,12 @@ function TooltipBox({ active, payload }: any) {
         </p>
       )}
       {p.temp != null && <p>Température {fmt(p.temp, 1)} °C</p>}
+      {p.cloud != null && (
+        <p>
+          Nébulosité {fmt(p.cloud)} % ({octas(p.cloud)}/8)
+          {p.cloudLow != null && ` · basse ${fmt(p.cloudLow)} %, moy. ${fmt(p.cloudMid)} %, haute ${fmt(p.cloudHigh)} %`}
+        </p>
+      )}
       {p.precip != null && <p>Pluie {fmt(p.precip, 1)} mm{p.pop != null ? ` (${p.pop} %)` : ''}</p>}
       {p.score != null && (
         <p className="mt-1 font-bold" style={{ color: LEVEL_META[levelFromScore(p.score)].color }}>
@@ -101,6 +107,10 @@ export function Forecast() {
         temp: w.hourly.temperature[i],
         precip: w.hourly.precipitation[i],
         pop: w.hourly.precipitationProbability[i],
+        cloud: w.hourly.cloudCover[i],
+        cloudLow: w.hourly.cloudLow[i],
+        cloudMid: w.hourly.cloudMid[i],
+        cloudHigh: w.hourly.cloudHigh[i],
         score: ev.hours[i]?.score ?? null,
         daylight: ev.hours[i]?.daylight ?? true,
       });
@@ -128,6 +138,7 @@ export function Forecast() {
         tmin: w.daily.tempMin[i],
         precip: w.daily.precipitationSum[i],
         code: w.daily.weatherCode[i],
+        cloud: w.daily.cloudMean[i],
         best: bestWindow(weekWindows.filter((x) => x.start.startsWith(d))),
       }))
       .filter((d) => d.day >= today);
@@ -188,7 +199,7 @@ export function Forecast() {
                   <span
                     key={x.start}
                     className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
-                      x === ev.bestWindow ? 'bg-ink-900 text-lemon-300' : 'bg-mint-100 text-ink-900'
+                      x === ev.bestWindow ? 'bg-night text-lemon-300' : 'bg-mint-100 text-ink-900'
                     }`}
                   >
                     <Clock className="h-3.5 w-3.5" />
@@ -208,7 +219,7 @@ export function Forecast() {
               <button
                 key={p.label}
                 onClick={() => setRange({ start: p.s, end: p.e })}
-                className={`chip border ${start === p.s && end === Math.min(p.e, hourly.length - 1) ? 'border-ink-900 bg-ink-900 text-white' : 'border-mint-200 bg-cream-50'}`}
+                className={`chip border ${start === p.s && end === Math.min(p.e, hourly.length - 1) ? 'border-night bg-night text-white' : 'border-mint-200 bg-cream-50'}`}
               >
                 {p.label}
               </button>
@@ -228,7 +239,7 @@ export function Forecast() {
                       <stop offset="1" stopColor="#2BB077" stopOpacity={0.05} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="#D5F5E4" vertical={false} />
+                  <CartesianGrid vertical={false} />
                   {windows48.map((x) => {
                     const last = hourly.filter((h) => h.time < x.end).pop();
                     return <ReferenceArea key={x.start} x1={x.start} x2={last?.time ?? x.start} fill="#3DBE6A" fillOpacity={0.14} ifOverflow="visible" />;
@@ -270,7 +281,7 @@ export function Forecast() {
             <div className="h-40">
               <ResponsiveContainer>
                 <LineChart data={visible} margin={{ top: 10, right: 8, left: -18, bottom: 0 }} syncId="fc2">
-                  <CartesianGrid stroke="#D5F5E4" vertical={false} />
+                  <CartesianGrid vertical={false} />
                   <XAxis dataKey="time" tickFormatter={hourLabel} minTickGap={18} />
                   <YAxis domain={[0, 360]} ticks={DIR_TICKS} tickFormatter={dirTick} />
                   <Tooltip content={<TooltipBox />} />
@@ -286,7 +297,7 @@ export function Forecast() {
             <div className="h-56">
               <ResponsiveContainer>
                 <ComposedChart data={visible} margin={{ top: 8, right: 0, left: -18, bottom: 0 }} syncId="fc2">
-                  <CartesianGrid stroke="#D5F5E4" vertical={false} />
+                  <CartesianGrid vertical={false} />
                   <XAxis dataKey="time" tickFormatter={hourLabel} minTickGap={18} />
                   <YAxis yAxisId="t" unit="°" />
                   <YAxis yAxisId="p" orientation="right" unit="mm" width={44} />
@@ -294,6 +305,26 @@ export function Forecast() {
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Bar yAxisId="p" dataKey="precip" name="Pluie (mm)" fill="#3CCFC1" radius={[4, 4, 0, 0]} />
                   <Line yAxisId="t" type="monotone" dataKey="temp" name="Température (°C)" stroke="#EFD12B" strokeWidth={2.5} dot={false} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+
+          <section className="card card-pad">
+            <h2 className="mb-1 font-display text-lg font-extrabold">Nébulosité</h2>
+            <p className="mb-2 text-xs text-ink-700">Couverture nuageuse totale (aire) et par étage : nuages bas, moyens et hauts.</p>
+            <div className="h-52">
+              <ResponsiveContainer>
+                <ComposedChart data={visible} margin={{ top: 8, right: 8, left: -18, bottom: 0 }} syncId="fc2">
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="time" tickFormatter={hourLabel} minTickGap={18} />
+                  <YAxis domain={[0, 100]} unit="%" ticks={[0, 25, 50, 75, 100]} />
+                  <Tooltip content={<TooltipBox />} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Area type="monotone" dataKey="cloud" name="Totale" stroke="#7C9A90" fill="#9DB8AE" fillOpacity={0.35} />
+                  <Line type="monotone" dataKey="cloudLow" name="Basse" stroke="#4B5D57" dot={false} strokeWidth={1.6} />
+                  <Line type="monotone" dataKey="cloudMid" name="Moyenne" stroke="#1FB3A6" dot={false} strokeWidth={1.6} />
+                  <Line type="monotone" dataKey="cloudHigh" name="Haute" stroke="#A3CC2A" dot={false} strokeWidth={1.6} strokeDasharray="4 3" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -320,7 +351,7 @@ export function Forecast() {
                   </div>
                 </div>
                 <p className="tabular mt-2 text-xs text-ink-700">
-                  {fmt(d.tmin)}° / {fmt(d.tmax)}° · pluie {fmt(d.precip, 1)} mm
+                  {fmt(d.tmin)}° / {fmt(d.tmax)}° · pluie {fmt(d.precip, 1)} mm · nébulosité {fmt(d.cloud)} % ({cloudLabel(d.cloud).toLowerCase()})
                 </p>
                 <div className="mt-2">
                   {d.best ? (
@@ -340,7 +371,7 @@ export function Forecast() {
             <div className="h-64">
               <ResponsiveContainer>
                 <BarChart data={daily} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                  <CartesianGrid stroke="#D5F5E4" vertical={false} />
+                  <CartesianGrid vertical={false} />
                   <XAxis dataKey="label" />
                   <YAxis allowDecimals={false} />
                   <Tooltip formatter={(v: any) => `${fmt(Number(v))} nds`} />
@@ -356,7 +387,7 @@ export function Forecast() {
             <div className="h-56">
               <ResponsiveContainer>
                 <ComposedChart data={daily} margin={{ top: 8, right: 0, left: -18, bottom: 0 }}>
-                  <CartesianGrid stroke="#D5F5E4" vertical={false} />
+                  <CartesianGrid vertical={false} />
                   <XAxis dataKey="label" />
                   <YAxis yAxisId="t" unit="°" />
                   <YAxis yAxisId="p" orientation="right" unit="mm" width={44} />

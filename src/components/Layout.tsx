@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
-import { Bell, Camera, Compass, Gauge, History, Layers, LineChart, MapPin, Sailboat, Scale, Settings, Trophy } from 'lucide-react';
+import { Bell, CalendarDays, Camera, Compass, Gauge, History, Layers, LineChart, Map as MapIcon, MapPin, Sailboat, Scale, Settings, Trophy, Users } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
+import { InstallPrompt } from './InstallPrompt';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
@@ -19,6 +21,9 @@ export function useMainNav() {
 
 const SECONDARY = [
   { to: '/ou-naviguer', label: 'Où naviguer ?', icon: Trophy },
+  { to: '/weekend', label: 'Week-end', icon: CalendarDays },
+  { to: '/sessions', label: 'Sur l’eau', icon: Users },
+  { to: '/carte', label: 'Carte', icon: MapIcon },
   { to: '/materiel', label: 'Matériel', icon: Sailboat },
   { to: '/comparer', label: 'Comparer', icon: Scale },
   { to: '/historique', label: 'Historique', icon: History },
@@ -61,12 +66,15 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
+          <div className="flex items-center gap-2">
+          <ThemeToggle />
           <NavLink
             to="/ou-naviguer"
             className="hidden items-center gap-1.5 rounded-full bg-lemon-400 px-3.5 py-2 text-sm font-extrabold text-ink-900 shadow-card transition hover:bg-lemon-300 sm:flex"
           >
             <Compass className="h-4 w-4" /> Où naviguer ?
           </NavLink>
+          </div>
         </div>
         <div className="border-t border-mint-100/60">
           <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 py-1.5">
@@ -75,7 +83,7 @@ export function Layout() {
                 key={s.to}
                 to={s.to}
                 className={({ isActive: a }) =>
-                  `flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold transition ${a ? 'bg-ink-900 text-white' : 'text-ink-700 hover:bg-mint-50'}`
+                  `flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold transition ${a ? 'bg-night text-white' : 'text-ink-700 hover:bg-mint-50'}`
                 }
               >
                 <s.icon className="h-3.5 w-3.5" /> {s.label}
@@ -86,6 +94,7 @@ export function Layout() {
       </header>
 
       <main key={location.pathname.split('/')[1]} className="mx-auto max-w-6xl animate-pageIn px-4 pb-28 pt-4 md:pb-12 md:pt-6">
+        <InstallPrompt />
         <Outlet />
       </main>
 

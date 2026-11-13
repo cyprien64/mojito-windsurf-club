@@ -8,6 +8,7 @@ import { WindRose } from '../components/WindRose';
 import { SECTOR_RATING_META } from '../lib/scoring';
 import { SECTOR_CODES, SECTOR_NAMES, sectorRange } from '../lib/wind';
 import { exportSettings, normalizeSettings } from '../services/settings';
+import { backendEnabled, loadAdminSession, logoutAdmin, publishSettings, sendLoginCode, verifyLoginCode, type AdminSession } from '../services/backend';
 import type { ClubSettings, ScoringWeights, SectorRating, SpotWindConfig } from '../types';
 
 function NumberField({ label, value, onChange, unit, step = 1 }: { label: string; value: number; onChange: (v: number) => void; unit?: string; step?: number }) {
@@ -33,7 +34,7 @@ function validate(cfg: SpotWindConfig): string[] {
 }
 
 export function Admin() {
-  const { settings, settingsSource, clubSettings, saveSettings, resetSettings } = useApp();
+  const { settings, settingsSource, clubSettings, remoteSettings, reloadRemoteSettings, saveSettings, resetSettings, stations } = useApp();
   const [draft, setDraft] = useState<ClubSettings>(() => structuredClone(settings));
   const [spotId, setSpotId] = useState(SPOTS[0].id);
   const [brush, setBrush] = useState<SectorRating>('ideal');
@@ -89,7 +90,13 @@ export function Admin() {
         </p>
         <p className="mt-1 text-xs font-bold text-mint-700">
           Réglages actifs :{' '}
-          {settingsSource === 'local' ? 'personnalisés sur cet appareil' : settingsSource === 'club' ? 'fichier du club (club-settings.json)' : 'valeurs par défaut du code'}
+          {settingsSource === 'local'
+            ? 'personnalisés sur cet appareil'
+            : settingsSource === 'remote'
+              ? 'réglages du club publiés en ligne'
+              : settingsSource === 'club'
+                ? 'fichier du club (club-settings.json)'
+                : 'valeurs par défaut du code'}
         </p>
       </section>
 
@@ -98,6 +105,8 @@ export function Admin() {
         les admins qui connaissent les spots peuvent définir les orientations <strong>dangereuses</strong> (vent offshore, zones interdites…). Seul l’offshore vers
         le large de Saint-Jean-de-Luz est pré-rempli, par prudence.
       </div>
+
+      <AdminLogin draft={draft} onPublished={() => { reloadRemoteSettings(); resetSettings(); }} hasRemote={!!remoteSettings} />
 
       {/* Pondérations */}
       <section className="card card-pad">
@@ -137,7 +146,7 @@ export function Admin() {
             <button
               key={s.id}
               onClick={() => setSpotId(s.id)}
-              className={`rounded-full border px-3.5 py-1.5 text-sm font-bold ${spotId === s.id ? 'border-ink-900 bg-ink-900 text-white' : 'border-mint-200 bg-cream-50'}`}
+              className={`rounded-full border px-3.5 py-1.5 text-sm font-bold ${spotId === s.id ? 'border-night bg-night text-white' : 'border-mint-200 bg-cream-50'}`}
             >
               {s.shortName}
             </button>
@@ -152,7 +161,7 @@ export function Admin() {
                 <button
                   key={r}
                   onClick={() => setBrush(r)}
-                  className={`chip border-2 px-3 py-1.5 text-sm ${brush === r ? 'border-ink-900' : 'border-transparent'}`}
+                  className={`chip border-2 px-3 py-1.5 text-sm ${brush === r ? 'border-night' : 'border-transparent'}`}
                   style={{ background: SECTOR_RATING_META[r].color, color: r === 'ok' ? '#0B2A20' : '#fff' }}
                   aria-pressed={brush === r}
                 >
@@ -181,7 +190,7 @@ export function Admin() {
               <p className="label mb-2">Détail des 16 secteurs</p>
               <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                 {SECTOR_CODES.map((code, i) => (
-                  <label key={code} className="flex items-center gap-1.5 rounded-lg border border-mint-100 bg-white px-2 py-1 text-xs">
+                  <label key={code} className="flex items-center gap-1.5 rounded-lg border border-mint-100 bg-cream-50 px-2 py-1 text-xs">
                     <span className="w-9 font-extrabold" title={SECTOR_NAMES[code]}>
                       {code}
                     </span>
@@ -247,6 +256,20 @@ export function Admin() {
               </div>
             </div>
 
+            {(SPOT_BY_ID[spotId].stations?.length ?? 0) > 0 && (
+              <label className="flex items-start gap-2 rounded-xl border border-mint-100 bg-mint-50/60 p-3 text-sm">
+                <input type="checkbox" className="mt-0.5 h-5 w-5 accent-mint-600" checked={!!cfg.useStation} onChange={(e) => setCfg({ useStation: e.target.checked })} />
+                <span>
+                  <strong>Utiliser la balise pour le vent actuel</strong>
+                  <span className="block text-xs text-ink-700">
+                    Si la balise {stations[spotId]?.[0]?.name ?? ''} a une mesure de moins de 30 min, elle remplace le modèle pour la note actuelle. À activer
+                    seulement si la balise est représentative du plan d’eau
+                    {stations[spotId]?.[0]?.distanceKm != null && ` (elle est à ${stations[spotId][0].distanceKm!.toFixed(1)} km)`}.
+                  </span>
+                </span>
+              </label>
+            )}
+
             <label className="block">
               <span className="label">Notes / restrictions locales</span>
               <textarea className="input mt-1 min-h-[80px]" value={cfg.notes} onChange={(e) => setCfg({ notes: e.target.value })} />
@@ -308,5 +331,119 @@ export function Admin() {
       document.body,
       )}
     </div>
+  );
+}
+
+/** Connexion admin (code par e-mail) et publication des réglages pour tout le club. */
+function AdminLogin({ draft, onPublished, hasRemote }: { draft: ClubSettings; onPublished: () => void; hasRemote: boolean }) {
+  const [session, setSession] = useState<AdminSession | null>(() => loadAdminSession());
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  if (!backendEnabled) {
+    return (
+      <section className="card card-pad text-sm">
+        <h2 className="font-display text-lg font-extrabold">Publication en ligne</h2>
+        <p className="mt-1 text-ink-700">
+          Pas encore activée : sans base de données, partagez les réglages avec « Exporter » puis le fichier <code>public/club-settings.json</code>. Pour publier
+          en un clic avec connexion sécurisée des admins, suivez « Activer les fonctions communautaires » dans le README.
+        </p>
+      </section>
+    );
+  }
+
+  const run = async (f: () => Promise<void>) => {
+    setBusy(true);
+    setMsg(null);
+    try {
+      await f();
+    } catch (e) {
+      setMsg((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="card card-pad">
+      <h2 className="font-display text-lg font-extrabold">Publication pour tout le club</h2>
+      {session ? (
+        <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+          <span>
+            Connecté : <strong>{session.email}</strong>
+          </span>
+          <button
+            className="btn-primary"
+            disabled={busy}
+            onClick={() =>
+              run(async () => {
+                await publishSettings(draft, session);
+                setMsg('Réglages publiés : tous les membres les reçoivent.');
+                onPublished();
+              })
+            }
+          >
+            Publier ces réglages
+          </button>
+          <button
+            className="btn-ghost"
+            onClick={() => {
+              logoutAdmin();
+              setSession(null);
+            }}
+          >
+            Se déconnecter
+          </button>
+          {hasRemote && <span className="text-xs text-ink-700">Des réglages sont déjà publiés en ligne.</span>}
+        </div>
+      ) : step === 'email' ? (
+        <div className="mt-2 flex flex-wrap items-end gap-2">
+          <label className="block flex-1">
+            <span className="label">E-mail d’admin</span>
+            <input className="input mt-1" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </label>
+          <button
+            className="btn-primary"
+            disabled={busy || !email.includes('@')}
+            onClick={() =>
+              run(async () => {
+                await sendLoginCode(email.trim());
+                setStep('code');
+                setMsg('Code envoyé : consultez vos e-mails.');
+              })
+            }
+          >
+            Recevoir un code
+          </button>
+        </div>
+      ) : (
+        <div className="mt-2 flex flex-wrap items-end gap-2">
+          <label className="block">
+            <span className="label">Code reçu par e-mail</span>
+            <input className="input mt-1 tabular" inputMode="numeric" value={code} onChange={(e) => setCode(e.target.value)} />
+          </label>
+          <button
+            className="btn-primary"
+            disabled={busy || code.trim().length < 6}
+            onClick={() =>
+              run(async () => {
+                setSession(await verifyLoginCode(email.trim(), code));
+                setMsg(null);
+              })
+            }
+          >
+            Se connecter
+          </button>
+          <button className="btn-ghost" onClick={() => setStep('email')}>
+            Changer d’e-mail
+          </button>
+        </div>
+      )}
+      {msg && <p className="mt-2 text-sm font-bold text-mint-700">{msg}</p>}
+      <p className="mt-2 text-[11px] text-ink-700/70">Seuls les e-mails invités comme admins dans Supabase peuvent se connecter.</p>
+    </section>
   );
 }

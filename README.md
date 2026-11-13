@@ -35,6 +35,9 @@ React · TypeScript · Vite · Tailwind CSS · Recharts · Lucide · Open-Meteo.
 | **Modèles météo** | Tableau ECMWF / GFS / ICON / ICON-EU / ARPEGE / AROME HD, heure du dernier run de chaque modèle, graphique comparatif, indicateur d'accord (forte convergence, convergence moyenne, forte divergence) |
 | **Webcams** | Webcams publiques intégrées (Viewsurf / office de tourisme de Leucate), rechargement automatique, plein écran, affichage multiple, liens vers les webcams proches pour les spots sans caméra |
 | **Matériel** | Profil du rider (poids, niveau, voiles et ailes possédées) puis conseils : taille de voile, volume de planche, aileron, aile de wing, volume de planche de foil, aile avant, longueur de mât, et choix **windsurf ou wing foil** |
+| **Week-end** | Meilleur spot et meilleur créneau du samedi et du dimanche |
+| **Sur l'eau** | « J'y suis / j'y étais » : qui navigue en ce moment, retours de session, tailles de voile et d'aile réellement utilisées par le club *(nécessite Supabase)* |
+| **Carte** | Carte OpenStreetMap des spots (couleur = navigabilité) et des balises de vent |
 | **Comparer** | Plusieurs spots côte à côte (tableau et graphique 48 h) |
 | **Historique** | 7 derniers jours (valeurs modélisées) et heures navigables par jour |
 | **Alertes** | Règles de notification (vent > X nds, conditions favorables, modèles qui convergent) |
@@ -146,6 +149,10 @@ Tout se trouve dans **`src/config/spots.ts`**. Chaque spot contient :
 | Leucate – Parc à huîtres | 42.8732, 3.0350 | Windfinder, spot « Parc à huîtres » |
 | Leucate – Éole | 42.8321, 3.0347 | Windfinder, spot « Eole » |
 | Saint-Jean-de-Luz | 43.3887, -1.6627 | Windfinder, spot « Saint-Jean-de-Luz » (Grande Plage) |
+| Lac marin d'Hossegor | 43.6722, -1.4287 | OpenStreetMap / Nominatim, « Lac d'Hossegor » |
+| Étang de Soustons | 43.7703, -1.3277 | OpenStreetMap, centre de l'« Étang de Soustons » |
+| Gruissan – Étang de Mateille | 43.1252, 3.1260 | OpenStreetMap / Nominatim, « Étang de Mateille » |
+| Leucate – La Franqui (mer) | 42.9419, 3.0388 | OpenStreetMap, poste de secours des Coussoules |
 
 > Le « Lac de Cabas / Esclourentis » demandé correspond au **lac du Gabas** à **Eslourenties-Daban** (64) : c'est l'orthographe officielle utilisée dans le site.
 > Pour plus de précision, remplacez ces coordonnées par celles de votre point de mise à l'eau habituel (clic droit dans Google Maps, puis copier les coordonnées).
@@ -277,6 +284,11 @@ Importez le dépôt : `netlify.toml` et `vercel.json` sont fournis (commande `np
 | [Open-Meteo Forecast API](https://open-meteo.com/en/docs) | Conditions actuelles, 7 jours de prévisions, 7 jours d'historique (modèle « best match ») | Non (usage non commercial) |
 | Open-Meteo, paramètre `models` | ECMWF IFS 0.25°, GFS, ICON, ICON-EU, ARPEGE Europe, AROME France HD | Non |
 | `api.open-meteo.com/data/{modèle}/static/meta.json` | Heure du dernier run de chaque modèle | Non |
+| [Pioupiou / OpenWindMap](https://developers.pioupiou.fr/api/live/) | Vent **mesuré** par les balises proches (Gabas, Leucate, Saint-Jean-de-Luz, Gruissan) | Non |
+| Open-Meteo Marine, `sea_level_height_msl` | Marées (Saint-Jean-de-Luz, Hossegor), heures approximatives, sans coefficient | Non |
+| [OpenStreetMap](https://www.openstreetmap.org) + Leaflet | Carte des spots | Non |
+| [Telegram Bot API](https://core.telegram.org/bots/api) | Alertes automatiques (facultatif) | Jeton de bot |
+| [Supabase](https://supabase.com) | Retours de session, réglages partagés, connexion des admins (facultatif) | Clé publique « anon » |
 | [Viewsurf](https://www.viewsurf.com) (via l'office de tourisme de Leucate) | Webcams intégrées | Non |
 | [Wikimedia Commons](https://commons.wikimedia.org) | Photos des spots (licences CC BY-SA, crédits affichés) | Non |
 | OpenStreetMap / Nominatim, Windfinder, unplug-kitesurf | Vérification des coordonnées GPS (lors de la configuration, pas à l'exécution) | — |
@@ -285,6 +297,38 @@ Les données Open-Meteo sont sous licence CC BY 4.0 (attribution dans le pied de
 **Open-Meteo Marine** (`marine-api.open-meteo.com`) est utilisé seulement pour les spots en mer qui déclarent un point `marine` dans `spots.ts` (Saint-Jean-de-Luz : houle au large de la baie). Il n'est pas pertinent pour les lacs et les étangs.
 
 **Appels API** : un seul appel groupé pour les 5 spots (prévisions) et un autre pour les modèles, mis en cache 15 et 30 min dans le navigateur, avec repli sur la dernière donnée connue en cas d'erreur réseau.
+
+---
+
+## Activer les fonctions communautaires (Supabase, gratuit)
+
+Ces fonctions ont besoin d'une petite base de données : retours de session (« Sur l'eau »), statistiques du club, publication des réglages en un clic et connexion sécurisée des admins. Sans elle, tout le reste du site fonctionne.
+
+1. Créez un compte puis un projet sur https://supabase.com (offre gratuite).
+2. **SQL Editor → New query** : collez le contenu de `supabase/schema.sql`, puis cliquez sur **Run**.
+3. **Authentication → Sign In / Providers → Email** : désactivez « Allow new users to sign up ». Dans **Email Templates → Magic Link**, ajoutez `{{ .Token }}` au message pour que le code à 6 chiffres soit envoyé.
+4. **Authentication → Users → Invite user** : invitez l'e-mail de chaque admin du club.
+5. **Project Settings → API** : copiez l'**URL du projet** et la clé **anon public** (cette clé est faite pour être publique ; la sécurité est assurée par les règles du schéma).
+6. Sur GitHub : **Settings → Secrets and variables → Actions → Variables → New repository variable** :
+   - `SUPABASE_URL` : l'URL du projet ;
+   - `SUPABASE_ANON_KEY` : la clé anon.
+7. Relancez le déploiement (**Actions → Build & deploy → Run workflow**).
+
+Les admins se connectent ensuite dans la page **Admin** avec leur e-mail (code reçu par e-mail), puis **Publier ces réglages** : tous les membres les reçoivent immédiatement.
+
+---
+
+## Alertes Telegram (même site fermé)
+
+Le workflow `.github/workflows/alerts.yml` tourne deux fois par jour (vers 6-7 h et 17-18 h). Il applique le même moteur de notation que le site (`scripts/alerts.ts`) et envoie les bonnes sessions des 36 prochaines heures sur Telegram.
+
+1. Sur Telegram, parlez à **@BotFather** → `/newbot` → récupérez le **jeton** du bot.
+2. Ajoutez le bot au groupe du club et envoyez-y un message, puis ouvrez `https://api.telegram.org/bot<JETON>/getUpdates` pour lire le `chat.id` du groupe (un nombre négatif).
+3. GitHub → **Settings → Secrets and variables → Actions → Secrets** : `TELEGRAM_BOT_TOKEN` et `TELEGRAM_CHAT_ID`.
+4. Facultatif (onglet *Variables*) : `ALERT_MIN_SCORE` (70 par défaut).
+5. Testez avec **Actions → Alertes Telegram → Run workflow**.
+
+WhatsApp n'a pas d'API gratuite pour les groupes ; le bouton **Partager** du site permet en revanche d'envoyer un spot sur WhatsApp en un geste.
 
 ---
 
@@ -300,7 +344,7 @@ Pour des notifications envoyées **même site fermé**, il faudra ajouter un pet
 
 ## Limites connues
 
-- Les conditions « actuelles » viennent de modèles météo, pas d'anémomètres sur les spots. Les effets locaux (venturi, dévent, thermiques) peuvent différer.
+- Les conditions « actuelles » viennent de modèles météo. Les balises Pioupiou affichées ne sont pas exactement sur le plan d'eau (ex. la balise « Aéromodélisme Leucatois » est sur le plateau) : leur utilisation pour la note est donc une option à activer spot par spot dans Admin. Les effets locaux (venturi, dévent, thermiques) peuvent différer.
 - Les modèles globaux (ECMWF, GFS à environ 25 km) lissent les effets locaux ; AROME HD (environ 1,5 km) est le plus fin, mais ne prévoit qu'à environ 2 jours.
 - Les heures affichées dans les lecteurs de webcam sont fournies par la source ; le site n'a pas accès à l'horodatage interne d'un lecteur intégré.
 - Les réglages Admin sont stockés par appareil, sauf s'ils sont publiés via `club-settings.json`.

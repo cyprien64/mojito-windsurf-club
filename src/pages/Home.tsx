@@ -67,7 +67,7 @@ export function Home() {
                   </span>
                   <span>Rafales {Math.round(best.gust ?? 0)} nds</span>
                   {best.bestWindow && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-ink-900 px-3 py-1 text-xs text-lemon-300">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-night px-3 py-1 text-xs text-lemon-300">
                       <Clock className="h-3.5 w-3.5" /> MEILLEUR CRÉNEAU : {relativeDay(best.bestWindow.start, todayIso)} {hhmm(best.bestWindow.start)} – {hhmm(best.bestWindow.end)}
                     </span>
                   )}
@@ -93,7 +93,7 @@ export function Home() {
                 <li key={e.spotId}>
                   <Link
                     to={`/conditions/${e.spotId}`}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-mint-200 bg-white px-2.5 py-1 text-xs font-bold hover:border-mint-400"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-mint-200 bg-cream-50 px-2.5 py-1 text-xs font-bold hover:border-mint-400"
                   >
                     <span className="text-ink-700/60">{i + 1}.</span> {SPOT_BY_ID[e.spotId].shortName}
                     <RatingBadge level={e.level} size="sm" label={String(e.score)} />

@@ -15,6 +15,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;1,9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script>
+      // Thème avant le premier affichage (évite le flash) : auto / clair / sombre
+      try {
+        var t = localStorage.getItem('mwc-theme') || 'auto';
+        var dark = t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

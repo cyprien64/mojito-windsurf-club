@@ -339,6 +339,8 @@ export interface SpotEvaluation {
   bestWindow: SailWindow | null;
   /** Meilleure heure si aucun créneau n'atteint le seuil. */
   bestHour: HourEval | null;
+  /** Origine du vent actuel utilisé pour la note. */
+  windSource?: 'modèle' | 'balise';
 }
 
 const ORIENTATION_TEXT: Record<SectorRating, string> = {

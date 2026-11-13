@@ -15,6 +15,7 @@ import { fmt, hhmm, relativeDay } from '../lib/format';
 import type { ScoringWeights } from '../types';
 import { useGear } from '../hooks/useGear';
 import { DisciplineChip } from '../components/Gear';
+import { ShareButton } from '../components/Share';
 
 const TONE_ICON: Record<Tone, JSX.Element> = {
   good: <CheckCircle2 className="h-4 w-4 shrink-0 text-rate-good" />,
@@ -103,17 +104,18 @@ function RankCard({ ev, rank, todayIso }: { ev: SpotEvaluation; rank: number; to
             </ul>
           )}
 
-          {gearAdvice && (
-            <div className="mt-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {gearAdvice && (
               <Link to={`/materiel/${ev.spotId}`}>
                 <DisciplineChip advice={gearAdvice} />
               </Link>
-            </div>
-          )}
+            )}
+            <ShareButton ev={ev} compact />
+          </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {w ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-900 px-3 py-1.5 text-xs font-extrabold text-lemon-300">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-night px-3 py-1.5 text-xs font-extrabold text-lemon-300">
                 <Clock className="h-3.5 w-3.5" /> MEILLEUR CRÉNEAU : {relativeDay(w.start, todayIso)} {hhmm(w.start)} – {hhmm(w.end)}
               </span>
             ) : (

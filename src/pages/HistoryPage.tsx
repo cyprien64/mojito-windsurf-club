@@ -78,7 +78,7 @@ export function HistoryPage() {
         <div className="h-72">
           <ResponsiveContainer>
             <ComposedChart data={data} margin={{ top: 8, right: 0, left: -18, bottom: 0 }}>
-              <CartesianGrid stroke="#D5F5E4" vertical={false} />
+              <CartesianGrid vertical={false} />
               <XAxis dataKey="time" tickFormatter={(t: string) => (t.endsWith('T00:00') ? dayLabel(t) : hourLabel(t))} minTickGap={28} />
               <YAxis yAxisId="w" allowDecimals={false} />
               <YAxis yAxisId="t" orientation="right" unit="°" width={36} />

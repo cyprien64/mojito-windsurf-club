@@ -38,12 +38,12 @@ export function GearPage() {
           {best && (
             <section className="card card-pad">
               <h2 className="mb-3 font-display text-lg font-extrabold">Pour le meilleur créneau</h2>
-              <GearPanel advice={best} />
+              <GearPanel advice={best} spotId={spot.id} />
             </section>
           )}
           <section className="card card-pad">
             <h2 className="mb-3 font-display text-lg font-extrabold">Pour les conditions actuelles</h2>
-            <GearPanel advice={now} />
+            <GearPanel advice={now} spotId={spot.id} />
           </section>
         </>
       )}

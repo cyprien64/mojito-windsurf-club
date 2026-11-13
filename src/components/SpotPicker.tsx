@@ -20,7 +20,7 @@ export function SpotPicker({ value, onChange }: { value: string; onChange: (id: 
               aria-selected={active}
               onClick={() => onChange(s.id)}
               className={`flex items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-sm font-bold transition ${
-                active ? 'border-ink-900 bg-ink-900 text-white shadow-card' : 'border-mint-200 bg-cream-50 text-ink-800 hover:border-mint-400'
+                active ? 'border-night bg-night text-white shadow-card' : 'border-mint-200 bg-cream-50 text-ink-800 hover:border-mint-400'
               }`}
             >
               {ev && <span className="h-2.5 w-2.5 rounded-full" style={{ background: LEVEL_META[ev.level].color }} />}

@@ -1,0 +1,29 @@
+name: Alertes Telegram
+
+on:
+  schedule:
+    # 05:00 et 16:00 UTC ≈ 6/7 h et 17/18 h à Paris
+    - cron: '0 5,16 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - name: Envoyer les alertes
+        run: npm run alerts
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ALERT_MIN_SCORE: ${{ vars.ALERT_MIN_SCORE }}
+          SITE_URL: ${{ vars.SITE_URL }}
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}

@@ -29,6 +29,8 @@ export interface SpotWindConfig {
   gusts: GustThresholds;
   /** Remarques des admins (restrictions locales, zones interdites, etc.). */
   notes: string;
+  /** Utiliser la mesure de la balise (si récente) à la place du modèle pour le vent actuel. */
+  useStation?: boolean;
 }
 
 export interface ScoringWeights {
@@ -90,6 +92,10 @@ export interface SpotDefinition {
   info?: string;
   /** Plan d'eau (profondeur, algues, foil). */
   water: WaterInfo;
+  /** Balises anémomètres Pioupiou / OpenWindMap proches (identifiants). */
+  stations?: number[];
+  /** Afficher les marées (spots soumis à la marée). */
+  tides?: boolean;
   /** Point en mer pour les données de houle (Open-Meteo Marine), uniquement pour les spots en mer. */
   marine?: { lat: number; lon: number; label: string };
   /** Paramètres par défaut (avant personnalisation par les admins). */
@@ -142,6 +148,9 @@ export interface HourlySeries {
   precipitation: (number | null)[];
   precipitationProbability: (number | null)[];
   cloudCover: (number | null)[];
+  cloudLow: (number | null)[];
+  cloudMid: (number | null)[];
+  cloudHigh: (number | null)[];
   windSpeed: (number | null)[];
   windDirection: (number | null)[];
   windGusts: (number | null)[];
@@ -159,6 +168,7 @@ export interface DailySeries {
   gustMax: (number | null)[];
   windDirectionDominant: (number | null)[];
   weatherCode: (number | null)[];
+  cloudMean: (number | null)[];
 }
 
 export interface SpotWeather {
@@ -219,4 +229,33 @@ export interface Webcam {
   refreshSeconds?: number;
   /** true si la source est une caméra panoramique / live ; sinon instantanés. */
   live: boolean;
+}
+
+export interface StationReading {
+  provider: 'pioupiou';
+  id: number;
+  name: string;
+  lat: number | null;
+  lon: number | null;
+  distanceKm: number | null;
+  /** Date de la mesure (ISO, UTC). */
+  time: string | null;
+  ageMin: number | null;
+  avg: number | null; // nœuds
+  max: number | null;
+  min: number | null;
+  heading: number | null;
+  online: boolean;
+}
+
+export interface TideEvent {
+  time: string;
+  type: 'haute' | 'basse';
+  height: number;
+}
+
+export interface TideSeries {
+  time: string[];
+  height: (number | null)[];
+  events: TideEvent[];
 }

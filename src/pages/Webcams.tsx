@@ -49,7 +49,7 @@ function WebcamView({ cam, tall = false }: { cam: Webcam; tall?: boolean }) {
           key={reloadAt}
           src={cam.url}
           title={cam.title}
-          className={`${h} w-full border-0 bg-ink-900`}
+          className={`${h} w-full border-0 bg-night`}
           loading="lazy"
           allowFullScreen
           referrerPolicy="no-referrer-when-downgrade"
@@ -59,12 +59,12 @@ function WebcamView({ cam, tall = false }: { cam: Webcam; tall?: boolean }) {
         <img
           src={bustUrl(cam.url, reloadAt)}
           alt={cam.title}
-          className={`${h} w-full bg-ink-900 object-cover`}
+          className={`${h} w-full bg-night object-cover`}
           onLoad={() => setLoadedAt(Date.now())}
           onError={() => setFailed(true)}
         />
       )}
-      <div className="flex items-center justify-between gap-2 bg-ink-900 px-3 py-1.5 text-[11px] text-white/80">
+      <div className="flex items-center justify-between gap-2 bg-night px-3 py-1.5 text-[11px] text-white/80">
         <span>
           {loadedAt
             ? `${cam.kind === 'image' ? 'Image chargée' : 'Lecteur chargé'} à ${new Date(loadedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
@@ -141,7 +141,7 @@ export function Webcams() {
             <button
               key={s.id}
               onClick={() => navigate(`/webcams/${s.id}`)}
-              className={`rounded-full border px-3.5 py-2 text-sm font-bold ${selected === s.id ? 'border-ink-900 bg-ink-900 text-white' : 'border-mint-200 bg-cream-50'}`}
+              className={`rounded-full border px-3.5 py-2 text-sm font-bold ${selected === s.id ? 'border-night bg-night text-white' : 'border-mint-200 bg-cream-50'}`}
             >
               {s.shortName}
             </button>
@@ -155,10 +155,10 @@ export function Webcams() {
           <p className="text-sm text-ink-700">Flux publics intégrés depuis leurs sources officielles. Rafraîchissement automatique toutes les 10 min.</p>
         </div>
         <div className="hidden rounded-full border border-mint-200 bg-cream-50 p-1 sm:flex">
-          <button onClick={() => setCols(1)} className={`rounded-full p-1.5 ${cols === 1 ? 'bg-ink-900 text-white' : ''}`} aria-label="Une webcam par ligne">
+          <button onClick={() => setCols(1)} className={`rounded-full p-1.5 ${cols === 1 ? 'bg-night text-white' : ''}`} aria-label="Une webcam par ligne">
             <Square className="h-4 w-4" />
           </button>
-          <button onClick={() => setCols(2)} className={`rounded-full p-1.5 ${cols === 2 ? 'bg-ink-900 text-white' : ''}`} aria-label="Deux webcams par ligne">
+          <button onClick={() => setCols(2)} className={`rounded-full p-1.5 ${cols === 2 ? 'bg-night text-white' : ''}`} aria-label="Deux webcams par ligne">
             <Columns2 className="h-4 w-4" />
           </button>
         </div>
@@ -191,8 +191,8 @@ export function Webcams() {
       )}
 
       {expanded && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/85 p-3 backdrop-blur" role="dialog" aria-modal="true" onClick={() => setExpanded(null)}>
-          <div className="w-full max-w-6xl overflow-hidden rounded-2xl bg-ink-900" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3 backdrop-blur" role="dialog" aria-modal="true" onClick={() => setExpanded(null)}>
+          <div className="w-full max-w-6xl overflow-hidden rounded-2xl bg-night" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-2 text-white">
               <p className="font-bold">{expanded.title}</p>
               <button onClick={() => setExpanded(null)} className="grid h-8 w-8 place-items-center rounded-full bg-white/10 hover:bg-white/20" aria-label="Fermer">

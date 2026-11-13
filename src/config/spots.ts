@@ -7,7 +7,7 @@
 //    démarrer. Elles doivent être validées par les admins du club, puis
 //    ajustées depuis la page « Admin » du site (sans toucher au code).
 //  - Orientations « dangereuses » : seules celles qui sont évidentes (vent
-//    offshore vers le large à Saint-Jean-de-Luz) sont pré-remplies. Les autres
+//    offshore vers le large à Saint-Jean-de-Luz et La Franqui) sont pré-remplies. Les autres
 //    sont une décision de sécurité qui revient aux admins qui connaissent le spot.
 // =====================================================================
 
@@ -39,6 +39,7 @@ export const SPOTS: SpotDefinition[] = [
     accent: '#3CCFC1',
     info:
       'Réservoir d’environ 190 ha. Deux mises à l’eau (Eslourenties et Lourenties). Les zones de quiétude (amont du grand et du petit lac) sont interdites d’accès.',
+    stations: [986],
     water: {
       depth: 'moyenne',
       weed: false,
@@ -108,6 +109,7 @@ export const SPOTS: SpotDefinition[] = [
     },
     info:
       'Dans la continuité du Goulet, cadre sauvage, eau plate à clapoteuse et peu profonde. Kite interdit. Vérifiez les règles saisonnières auprès de l’office de tourisme.',
+    stations: [1538],
     water: {
       depth: 'faible',
       weed: true,
@@ -148,6 +150,7 @@ export const SPOTS: SpotDefinition[] = [
     },
     info:
       'Spot historique entre Leucate-village et Port-Leucate, faible profondeur, idéal pour progresser. Kite interdit. Algues possibles selon la saison (aileron anti-algues conseillé).',
+    stations: [1538],
     water: {
       depth: 'très faible',
       weed: true,
@@ -186,6 +189,7 @@ export const SPOTS: SpotDefinition[] = [
     },
     info:
       'Deux bassins communicants, Tramontane dominante. Certaines sources signalent la fermeture de la base Éole et un accès restreint : vérifiez l’accès avant de vous déplacer.',
+    stations: [1538],
     water: {
       depth: 'faible',
       weed: false,
@@ -225,6 +229,7 @@ export const SPOTS: SpotDefinition[] = [
     },
     info:
       'Baie fermée par trois digues, ouverte au nord-ouest : plan d’eau abrité de la houle mais exposé au vent de mer. Respectez les zones de baignade balisées et le chenal du port (Ciboure / Socoa).',
+    stations: [1715],
     water: {
       depth: 'profonde',
       weed: false,
@@ -232,6 +237,7 @@ export const SPOTS: SpotDefinition[] = [
       foil: 'ok',
       foilNote: 'Eau profonde, adaptée au foil. Attention aux bateaux dans le chenal et aux baigneurs en saison.',
     },
+    tides: true,
     marine: { lat: 43.42, lon: -1.69, label: 'au large de la baie (hors digues)' },
     defaults: {
       // Baie ouverte au NO : vents d'ouest à nord-ouest = vent de mer.
@@ -246,6 +252,130 @@ export const SPOTS: SpotDefinition[] = [
       gusts: { maxGust: 38, maxGustFactor: 1.6 },
       notes:
         'Réglages initiaux à valider par les admins. Vents de S à ESE classés dangereux par défaut : offshore, ils poussent vers le large.',
+    },
+  },
+  {
+    id: 'hossegor',
+    name: 'Lac marin d’Hossegor',
+    shortName: 'Hossegor',
+    location: 'Soorts-Hossegor (40) · Landes',
+    aka: ['Lac d’Hossegor'],
+    kind: 'lac',
+    lat: 43.6722,
+    lon: -1.4287,
+    coordSource: 'OpenStreetMap / Nominatim — objet « Lac d’Hossegor »',
+    coordCheckedOn: '2026-11-13',
+    accent: '#1FB3A6',
+    info:
+      'Lac marin relié à l’océan par le canal : il se vide et se remplit avec la marée. Naviguez plutôt autour de la pleine mer, le lac devient très peu profond à marée basse.',
+    tides: true,
+    water: {
+      depth: 'faible',
+      weed: false,
+      surface: 'plat',
+      foil: 'prudence',
+      foilNote: 'Foil seulement autour de la pleine mer : à marée basse, le lac est très peu profond.',
+    },
+    marine: { lat: 43.67, lon: -1.47, label: 'au large d’Hossegor' },
+    defaults: {
+      sectors: sectors({ ideal: ['O', 'ONO', 'NO', 'OSO'] }),
+      speed: { minRideable: 10, idealMin: 14, idealMax: 24, maxRideable: 32 },
+      gusts: { maxGust: 38, maxGustFactor: 1.7 },
+      notes: 'Réglages initiaux à valider par les admins. Vérifier l’horaire de pleine mer.',
+    },
+  },
+  {
+    id: 'soustons',
+    name: 'Étang de Soustons',
+    shortName: 'Soustons',
+    location: 'Soustons (40) · Landes',
+    aka: ['Lac de Soustons'],
+    kind: 'lac',
+    lat: 43.7703,
+    lon: -1.3277,
+    coordSource: 'OpenStreetMap — centre de l’emprise de l’« Étang de Soustons » (relation 1705749)',
+    coordCheckedOn: '2026-11-13',
+    accent: '#4CC98F',
+    info: 'Grand étang landais d’eau douce, abrité par la forêt. Régime de vents d’ouest et brises thermiques en été.',
+    water: {
+      depth: 'faible',
+      weed: false,
+      surface: 'plat',
+      foil: 'prudence',
+      foilNote: 'Étang peu profond par endroits : repérez les zones de plus d’un mètre avant de foiler.',
+    },
+    defaults: {
+      sectors: sectors({ ideal: ['O', 'ONO', 'NO', 'OSO'] }),
+      speed: { minRideable: 9, idealMin: 13, idealMax: 24, maxRideable: 32 },
+      gusts: { maxGust: 38, maxGustFactor: 1.7 },
+      notes: 'Réglages initiaux à valider par les admins.',
+    },
+  },
+  {
+    id: 'gruissan',
+    name: 'Gruissan – Étang de Mateille',
+    shortName: 'Gruissan',
+    location: 'Les Ayguades · Gruissan (11)',
+    kind: 'étang',
+    lat: 43.1252,
+    lon: 3.126,
+    coordSource: 'OpenStreetMap / Nominatim — objet « Étang de Mateille »',
+    coordCheckedOn: '2026-11-13',
+    accent: '#BFE34A',
+    info: 'Étang peu profond entre Gruissan et Narbonne-Plage, réputé pour la Tramontane. Balise Pioupiou du club local sur place.',
+    stations: [602],
+    water: {
+      depth: 'faible',
+      weed: false,
+      surface: 'plat',
+      foil: 'prudence',
+      foilNote: 'Étang peu profond : mât court et repérage du fond indispensables.',
+    },
+    defaults: {
+      sectors: sectors({
+        ideal: ['N', 'NNO', 'NO', 'ONO'],
+        ok: ['O', 'SE', 'SSE', 'ESE', 'E'],
+        bad: ['NNE', 'NE', 'ENE', 'S', 'SSO', 'SO', 'OSO'],
+      }),
+      speed: { minRideable: 12, idealMin: 16, idealMax: 28, maxRideable: 38 },
+      gusts: { maxGust: 45, maxGustFactor: 1.6 },
+      notes: 'Réglages initiaux à valider par les admins. Tramontane = vent dominant.',
+    },
+  },
+  {
+    id: 'la-franqui',
+    name: 'Leucate – La Franqui (mer)',
+    shortName: 'La Franqui',
+    location: 'Plage des Coussoules · Leucate (11)',
+    kind: 'baie',
+    lat: 42.9419,
+    lon: 3.0388,
+    coordSource: 'OpenStreetMap — poste de secours de la plage des Coussoules',
+    coordCheckedOn: '2026-11-13',
+    accent: '#3CCFC1',
+    info:
+      'Spot en mer du Mondial du Vent. Plage orientée à l’est : la Tramontane (NO) y est side-off et les vents d’ouest y sont offshore. Chenal de sortie réservé au windsurf, kite interdit sous la falaise.',
+    stations: [1538],
+    water: {
+      depth: 'profonde',
+      weed: false,
+      surface: 'vagues',
+      foil: 'prudence',
+      foilNote: 'Mer : shorebreak et vagues par vent de mer, sortez par le chenal balisé.',
+    },
+    marine: { lat: 42.94, lon: 3.08, label: 'au large de La Franqui' },
+    defaults: {
+      // Plage face à l'est : vents d'ouest = offshore vers le large → dangereux par prudence.
+      sectors: sectors({
+        ideal: ['N', 'NNO', 'SE', 'ESE'],
+        ok: ['NNE', 'NE', 'ENE', 'E', 'SSE', 'S'],
+        bad: ['NO', 'SSO', 'SO'],
+        danger: ['ONO', 'O', 'OSO'],
+      }),
+      speed: { minRideable: 12, idealMin: 16, idealMax: 28, maxRideable: 38 },
+      gusts: { maxGust: 45, maxGustFactor: 1.6 },
+      notes:
+        'Réglages initiaux à valider par les admins. Vents d’ouest classés dangereux par défaut : offshore, ils poussent vers le large.',
     },
   },
 ];

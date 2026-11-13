@@ -101,7 +101,7 @@ export function WindRose({ sectors, direction, speedLabel, onSectorClick, size =
         )}
       </svg>
       {hover != null && sectors && (
-        <div className="pointer-events-none absolute left-1/2 top-1 -translate-x-1/2 rounded-full bg-ink-900 px-3 py-1 text-xs font-semibold text-white shadow-lift">
+        <div className="pointer-events-none absolute left-1/2 top-1 -translate-x-1/2 rounded-full bg-night px-3 py-1 text-xs font-semibold text-white shadow-lift">
           {SECTOR_NAMES[SECTOR_CODES[hover]]} · {SECTOR_RATING_META[sectors[hover]].label}
         </div>
       )}

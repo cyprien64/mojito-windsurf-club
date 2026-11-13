@@ -109,7 +109,7 @@ export function Models() {
           <h2 className="font-display text-lg font-extrabold">Accord entre les modèles</h2>
           <div className="flex rounded-full border border-mint-200 bg-cream-50 p-1 text-xs font-bold">
             {(['now', '6h', '24h'] as Horizon[]).map((h) => (
-              <button key={h} onClick={() => setHorizon(h)} className={`rounded-full px-3 py-1 ${horizon === h ? 'bg-ink-900 text-white' : ''}`}>
+              <button key={h} onClick={() => setHorizon(h)} className={`rounded-full px-3 py-1 ${horizon === h ? 'bg-night text-white' : ''}`}>
                 {h === 'now' ? 'Maintenant' : h === '6h' ? '6 prochaines h' : '24 prochaines h'}
               </button>
             ))}
@@ -211,7 +211,7 @@ export function Models() {
               <button
                 key={m.id}
                 onClick={() => setHidden((h) => (off ? h.filter((x) => x !== m.id) : [...h, m.id]))}
-                className={`chip border ${off ? 'border-mint-200 bg-white text-ink-700/50 line-through' : 'border-transparent text-white'}`}
+                className={`chip border ${off ? 'border-mint-200 bg-cream-50 text-ink-700/50 line-through' : 'border-transparent text-white'}`}
                 style={off ? undefined : { background: m.color }}
                 aria-pressed={!off}
               >
@@ -223,7 +223,7 @@ export function Models() {
         <div className="h-80">
           <ResponsiveContainer>
             <LineChart data={chartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-              <CartesianGrid stroke="#D5F5E4" vertical={false} />
+              <CartesianGrid vertical={false} />
               <XAxis dataKey="time" tickFormatter={(t: string) => (t.endsWith('T00:00') ? dayLabel(t) : hourLabel(t))} minTickGap={24} />
               <YAxis
                 domain={metric === 'windDirection' ? [0, 360] : ['auto', 'auto']}

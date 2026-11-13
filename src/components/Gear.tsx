@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Sailboat, Wind } from 'lucide-react';
 import type { Discipline, GearAdvice } from '../lib/gear';
 import type { RiderLevel, RiderProfile } from '../types';
+import { clubStats, statForWind } from '../lib/clubStats';
 import { useApp } from '../context/AppContext';
 
 export const DISCIPLINE_META: Record<Discipline, { label: string; emoji: string; color: string }> = {
@@ -45,8 +46,11 @@ function Row({ k, v }: { k: string; v: ReactNode }) {
 }
 
 /** Détail complet : choix de la discipline + matériel windsurf et wing. */
-export function GearPanel({ advice, compact = false }: { advice: GearAdvice; compact?: boolean }) {
-  const { rider } = useApp();
+export function GearPanel({ advice, compact = false, spotId }: { advice: GearAdvice; compact?: boolean; spotId?: string }) {
+  const { rider, reports } = useApp();
+  const stats = spotId ? clubStats(reports, spotId) : [];
+  const clubWs = statForWind(stats, 'windsurf', advice.wind.speed);
+  const clubWg = statForWind(stats, 'wingfoil', advice.wind.speed);
   const ws = advice.windsurf;
   const wg = advice.wing;
   const highlight = (d: 'windsurf' | 'wingfoil') => advice.choice === d || advice.choice === 'les deux';
@@ -63,6 +67,14 @@ export function GearPanel({ advice, compact = false }: { advice: GearAdvice; com
         <ScoreBar label="🏄 Planche à voile" value={advice.scores.windsurf} color="#1E8F60" />
         <ScoreBar label="🪁 Wing foil" value={advice.scores.wingfoil} color="#2F6FDE" />
       </div>
+      {(clubWs || clubWg) && (
+        <p className="rounded-xl bg-lemon-300/40 px-3 py-2 text-sm">
+          👥 <strong>Expérience du club</strong> sur ce spot par {Math.round(advice.wind.speed)} nds :{' '}
+          {clubWs && `windsurf en ${clubWs.medianSize} m² (${clubWs.count} sessions)`}
+          {clubWs && clubWg && ' · '}
+          {clubWg && `wing en ${clubWg.medianSize} m² (${clubWg.count} sessions)`}
+        </p>
+      )}
       {advice.reasons.length > 0 && (
         <ul className="space-y-1 text-sm text-ink-800">
           {advice.reasons.map((r) => (
@@ -74,7 +86,7 @@ export function GearPanel({ advice, compact = false }: { advice: GearAdvice; com
         <div className="grid gap-3 md:grid-cols-2">
           <div className={`rounded-2xl border p-3.5 ${highlight('windsurf') ? 'border-mint-400 bg-mint-50/70' : 'border-mint-100 bg-white/60'}`}>
             <p className="mb-1 flex items-center gap-2 font-display text-base font-extrabold">
-              <Sailboat className="h-4 w-4 text-mint-700" /> Planche à voile <span className="chip bg-white text-ink-700">{ws.regime}</span>
+              <Sailboat className="h-4 w-4 text-mint-700" /> Planche à voile <span className="chip bg-cream-50 text-ink-700">{ws.regime}</span>
             </p>
             <Row k="Voile" v={`${ws.sail} m² (${ws.sailRange[0]} – ${ws.sailRange[1]})`} />
             {ws.ownedSail != null && <Row k="Dans votre voilerie" v={`${ws.ownedSail} m²`} />}
@@ -90,7 +102,7 @@ export function GearPanel({ advice, compact = false }: { advice: GearAdvice; com
           </div>
           <div className={`rounded-2xl border p-3.5 ${highlight('wingfoil') ? 'border-[#2F6FDE]/50 bg-blue-50/60' : 'border-mint-100 bg-white/60'}`}>
             <p className="mb-1 flex items-center gap-2 font-display text-base font-extrabold">
-              <Wind className="h-4 w-4 text-[#2F6FDE]" /> Wing foil <span className="chip bg-white text-ink-700">{wg.regime}</span>
+              <Wind className="h-4 w-4 text-[#2F6FDE]" /> Wing foil <span className="chip bg-cream-50 text-ink-700">{wg.regime}</span>
             </p>
             <Row k="Aile" v={`${wg.wing} m² (${wg.wingRange[0]} – ${wg.wingRange[1]})`} />
             {wg.ownedWing != null && <Row k="Dans votre matériel" v={`${wg.ownedWing} m²`} />}
@@ -121,16 +133,61 @@ const parseList = (s: string) =>
     .map((x) => Number(x.replace(',', '.')))
     .filter((x) => Number.isFinite(x) && x > 0 && x < 15);
 
+/**
+ * Saisie du poids : on garde le texte tapé tel quel (on peut effacer et
+ * retaper librement) et on n'enregistre que des valeurs valides (35–150 kg).
+ * Boutons −/+ et curseur pour un réglage facile au pouce.
+ */
+function WeightField({ value, onChange }: { value: number; onChange: (kg: number) => void }) {
+  const [text, setText] = useState(String(value));
+  useEffect(() => setText(String(value)), [value]);
+  const commit = (raw: string) => {
+    const n = Math.round(Number(raw.replace(',', '.')));
+    if (Number.isFinite(n) && n >= 35 && n <= 150) onChange(n);
+    else setText(String(value));
+  };
+  const step = (d: number) => onChange(Math.min(150, Math.max(35, value + d)));
+  return (
+    <div className="block sm:col-span-2 lg:col-span-1">
+      <span className="label">Poids (kg)</span>
+      <div className="mt-1 flex items-center gap-2">
+        <button type="button" className="btn-ghost !px-3 !py-2 text-lg" onClick={() => step(-1)} aria-label="Retirer 1 kg">
+          −
+        </button>
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          className="input tabular text-center text-lg font-bold"
+          value={text}
+          onChange={(e) => {
+            const v = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+            setText(v);
+            const n = Number(v);
+            if (v.length >= 2 && n >= 35 && n <= 150) onChange(n);
+          }}
+          onBlur={(e) => commit(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commit((e.target as HTMLInputElement).value);
+          }}
+          aria-label="Poids en kilogrammes"
+        />
+        <button type="button" className="btn-ghost !px-3 !py-2 text-lg" onClick={() => step(1)} aria-label="Ajouter 1 kg">
+          +
+        </button>
+      </div>
+      <input type="range" min={35} max={150} value={value} onChange={(e) => onChange(Number(e.target.value))} className="mt-2 w-full accent-mint-600" aria-label="Curseur de poids" />
+    </div>
+  );
+}
+
 /** Formulaire du profil (enregistré sur l'appareil). */
 export function RiderForm() {
   const { rider, setRider } = useApp();
   const set = (p: Partial<RiderProfile>) => setRider({ ...rider, ...p });
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <label className="block">
-        <span className="label">Poids (kg)</span>
-        <input type="number" min={30} max={150} className="input mt-1 tabular" value={rider.weightKg} onChange={(e) => set({ weightKg: Number(e.target.value) || 75 })} />
-      </label>
+      <WeightField value={rider.weightKg} onChange={(kg) => set({ weightKg: kg })} />
       <label className="block">
         <span className="label">Niveau</span>
         <select className="input mt-1" value={rider.level} onChange={(e) => set({ level: e.target.value as RiderLevel })}>

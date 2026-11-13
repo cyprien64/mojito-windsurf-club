@@ -32,6 +32,10 @@ export function Alerts() {
           données (toutes les 15 min) tant que le site ou l’application installée est ouvert. Une orientation classée dangereuse ne déclenche jamais d’alerte
           positive.
         </p>
+        <p className="mt-2 max-w-2xl rounded-xl bg-lemon-300/40 px-3 py-2 text-sm">
+          📣 Le club peut aussi recevoir les bonnes sessions sur <strong>Telegram</strong>, même site fermé (deux messages par jour maximum). Activation par un admin :
+          voir le README, section « Alertes Telegram ».
+        </p>
       </section>
 
       <section className="card card-pad flex flex-wrap items-center gap-3">
