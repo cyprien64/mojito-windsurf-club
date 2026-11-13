@@ -11,6 +11,7 @@ import { Compare } from './pages/Compare';
 import { HistoryPage } from './pages/HistoryPage';
 import { Alerts } from './pages/Alerts';
 import { Admin } from './pages/Admin';
+import { GearPage } from './pages/GearPage';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="webcams/:spotId?" element={<Webcams />} />
             <Route path="comparer" element={<Compare />} />
             <Route path="historique/:spotId?" element={<HistoryPage />} />
+            <Route path="materiel/:spotId?" element={<GearPage />} />
             <Route path="alertes" element={<Alerts />} />
             <Route path="admin" element={<Admin />} />
             <Route path="*" element={<Navigate to="/" replace />} />

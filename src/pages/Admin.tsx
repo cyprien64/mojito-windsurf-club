@@ -95,8 +95,8 @@ export function Admin() {
 
       <div className="rounded-xl border border-rate-mid/40 bg-orange-50 px-4 py-3 text-sm">
         <strong>Valeurs initiales à valider.</strong> Les orientations et seuils fournis par défaut sont une base de départ (vent dominant, axe du plan d’eau). Seuls
-        les admins qui connaissent les spots peuvent définir les orientations <strong>dangereuses</strong> (vent offshore, zones interdites…) — aucune n’est
-        pré-remplie.
+        les admins qui connaissent les spots peuvent définir les orientations <strong>dangereuses</strong> (vent offshore, zones interdites…). Seul l’offshore vers
+        le large de Saint-Jean-de-Luz est pré-rempli, par prudence.
       </div>
 
       {/* Pondérations */}

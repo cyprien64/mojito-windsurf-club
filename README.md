@@ -2,7 +2,7 @@
 
 **Find your wind. Find your spot.**
 
-Plateforme météo du club : conditions actuelles, prévisions sur 48 h et 7 jours, comparaison des modèles météo (ECMWF, GFS, ICON, ARPEGE, AROME), webcams et une fonctionnalité centrale, **« Où naviguer aujourd'hui ? »**, qui classe automatiquement les 5 spots du club.
+Plateforme météo du club : conditions actuelles, prévisions sur 48 h et 7 jours, comparaison des modèles météo (ECMWF, GFS, ICON, ARPEGE, AROME), webcams et une fonctionnalité centrale, **« Où naviguer aujourd'hui ? »**, qui classe automatiquement les spots du club, avec un conseil matériel et le choix windsurf ou wing foil.
 
 React · TypeScript · Vite · Tailwind CSS · Recharts · Lucide · Open-Meteo. PWA installable sur smartphone.
 
@@ -34,6 +34,7 @@ React · TypeScript · Vite · Tailwind CSS · Recharts · Lucide · Open-Meteo.
 | **Prévisions** | 48 h heure par heure (vent, rafales, direction, température, pluie), créneaux favorables surlignés, sélection de période ; 7 jours jour par jour |
 | **Modèles météo** | Tableau ECMWF / GFS / ICON / ICON-EU / ARPEGE / AROME HD, heure du dernier run de chaque modèle, graphique comparatif, indicateur d'accord (forte convergence, convergence moyenne, forte divergence) |
 | **Webcams** | Webcams publiques intégrées (Viewsurf / office de tourisme de Leucate), rechargement automatique, plein écran, affichage multiple, liens vers les webcams proches pour les spots sans caméra |
+| **Matériel** | Profil du rider (poids, niveau, voiles et ailes possédées) puis conseils : taille de voile, volume de planche, aileron, aile de wing, volume de planche de foil, aile avant, longueur de mât, et choix **windsurf ou wing foil** |
 | **Comparer** | Plusieurs spots côte à côte (tableau et graphique 48 h) |
 | **Historique** | 7 derniers jours (valeurs modélisées) et heures navigables par jour |
 | **Alertes** | Règles de notification (vent > X nds, conditions favorables, modèles qui convergent) |
@@ -144,6 +145,7 @@ Tout se trouve dans **`src/config/spots.ts`**. Chaque spot contient :
 | Leucate – La Mine | 42.8971, 3.0155 | Fiche spot unplug-kitesurf.com |
 | Leucate – Parc à huîtres | 42.8732, 3.0350 | Windfinder, spot « Parc à huîtres » |
 | Leucate – Éole | 42.8321, 3.0347 | Windfinder, spot « Eole » |
+| Saint-Jean-de-Luz | 43.3887, -1.6627 | Windfinder, spot « Saint-Jean-de-Luz » (Grande Plage) |
 
 > Le « Lac de Cabas / Esclourentis » demandé correspond au **lac du Gabas** à **Eslourenties-Daban** (64) : c'est l'orthographe officielle utilisée dans le site.
 > Pour plus de précision, remplacez ces coordonnées par celles de votre point de mise à l'eau habituel (clic droit dans Google Maps, puis copier les coordonnées).
@@ -175,7 +177,7 @@ Le site est statique (pas de base de données), donc :
 
 Ordre de priorité : réglages locaux de l'appareil > `club-settings.json` > valeurs par défaut du code.
 
-> ⚠️ Les valeurs par défaut sont une **base de départ à valider** (vent dominant, axe du plan d'eau). **Aucune orientation « dangereuse » n'est pré-remplie** : c'est une décision de sécurité qui revient aux admins qui connaissent les spots (vent offshore, zones interdites…).
+> ⚠️ Les valeurs par défaut sont une **base de départ à valider** (vent dominant, axe du plan d'eau). Seules les orientations **offshore vers le large de Saint-Jean-de-Luz** (S à ESE) sont classées « dangereuses » par défaut, par prudence. Pour les autres spots, c'est une décision de sécurité qui revient aux admins qui les connaissent (vent offshore, zones interdites…).
 > La page Admin n'est pas protégée par mot de passe : sur un site statique, une protection côté navigateur ne serait pas une vraie sécurité. Seul un fichier `club-settings.json` validé dans le dépôt change les réglages pour tout le monde, et cela passe par GitHub.
 
 ---
@@ -201,7 +203,7 @@ Ordre de priorité : réglages locaux de l'appareil > `club-settings.json` > val
 
 N'intégrez que des flux publics dont l'intégration est autorisée par la source (lecteur « embed » fourni, ou image publique). Sinon, utilisez `kind: 'link'`.
 
-Webcams intégrées actuellement (lecteurs Viewsurf utilisés par l'office de tourisme de Leucate) : Base de voile de Port Leucate (côté étang), Leucate-Village, Port Leucate, La Franqui, Leucate-Plage. Aucune webcam publique n'a été trouvée pour le **lac de Léon** (lien vers Moliets, la plus proche, sur la côte) ni pour le **lac du Gabas**.
+Webcams intégrées actuellement (lecteurs Viewsurf utilisés par les offices de tourisme) : Base de voile de Port Leucate (côté étang), Leucate-Village, Port Leucate, La Franqui et Leucate-Plage, ainsi que, à Saint-Jean-de-Luz, la Grande Plage, le Fort de Socoa, le chenal et Sainte-Barbe. Aucune webcam publique n'a été trouvée pour le **lac de Léon** (lien vers Moliets, la plus proche, sur la côte) ni pour le **lac du Gabas**.
 
 ---
 
@@ -227,6 +229,22 @@ Fichier : `src/lib/scoring.ts`. Note /100 = moyenne pondérée (pondérations r�
 Niveaux : ≥ 78 **excellentes** (vert foncé) · ≥ 60 **bonnes** (vert) · ≥ 40 **moyennes** (orange) · < 40 **défavorables** (rouge).
 
 **Meilleur créneau** : chaque heure des 48 prochaines heures reçoit une note (orientation, vitesse, rafales, régularité locale). Les heures consécutives de jour au-dessus du seuil (60 par défaut) forment des créneaux. Le meilleur créneau maximise la qualité × la durée. Le calcul est refait à chaque actualisation des prévisions (toutes les 15 min).
+
+---
+
+## Conseil matériel (windsurf / wing foil)
+
+Fichier : `src/lib/gear.ts`. Les calculs utilisent le profil du rider (page **Matériel**, enregistré sur l'appareil), le vent (maintenant ou meilleur créneau) et le plan d'eau du spot (`water` dans `spots.ts` : profondeur, algues, clapot, foil possible ou non).
+
+| Élément | Règle utilisée (ordre de grandeur) |
+|---|---|
+| Voile de windsurf | ≈ 1,34 × poids (kg) / vent (nds), arrondie à une taille du commerce, plafonnée selon le niveau |
+| Volume de planche windsurf | poids + marge (plus de vent : moins de volume ; débutant : +70 à +90 L) |
+| Aileron | ≈ 5,5 × surface de voile (cm) ; anti-algues sur les spots à algues ; plus court sur les spots peu profonds |
+| Aile de wing | ≈ poids (kg) / vent (nds) |
+| Planche et foil de wing | volume selon le niveau, aile avant de 900 à 2 200 cm², mât court si l'eau est peu profonde |
+
+**Windsurf ou wing foil ?** Le site compare les deux. Vent trop léger pour planer mais suffisant pour voler : wing. Vent fort et établi : windsurf. Vent rafaleux : léger avantage au wing. Plan d'eau peu profond ou à algues (La Mine, Parc à huîtres) : foil déconseillé. Orientation dangereuse : aucune session conseillée.
 
 ---
 
@@ -264,7 +282,7 @@ Importez le dépôt : `netlify.toml` et `vercel.json` sont fournis (commande `np
 | OpenStreetMap / Nominatim, Windfinder, unplug-kitesurf | Vérification des coordonnées GPS (lors de la configuration, pas à l'exécution) | — |
 
 Les données Open-Meteo sont sous licence CC BY 4.0 (attribution dans le pied de page).
-**Open-Meteo Marine** n'est pas utilisé : les 5 spots sont des lacs ou des étangs, où les données de houle en mer ne sont pas pertinentes. Pour l'ajouter (pour un spot en mer, par exemple), créez une fonction dans `services/weather.ts` vers `https://marine-api.open-meteo.com/v1/marine`.
+**Open-Meteo Marine** (`marine-api.open-meteo.com`) est utilisé seulement pour les spots en mer qui déclarent un point `marine` dans `spots.ts` (Saint-Jean-de-Luz : houle au large de la baie). Il n'est pas pertinent pour les lacs et les étangs.
 
 **Appels API** : un seul appel groupé pour les 5 spots (prévisions) et un autre pour les modèles, mis en cache 15 et 30 min dans le navigateur, avec repli sur la dernière donnée connue en cas d'erreur réseau.
 

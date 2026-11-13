@@ -31,7 +31,7 @@ export function Home() {
         <MintLeaf className="absolute -right-4 -top-3 h-28 w-28 animate-floaty opacity-90" style={{ '--r': '25deg' } as unknown as CSSProperties} />
         <LimeSlice className="absolute right-20 top-16 h-14 w-14 animate-floaty opacity-95 [animation-delay:-2s]" />
         <MintLeaf className="absolute -left-5 bottom-10 h-16 w-16 rotate-180 opacity-40" />
-        <p className="text-xs font-bold uppercase tracking-[.25em] text-lime-300">Club de windsurf · Landes · Béarn · Leucate</p>
+        <p className="text-xs font-bold uppercase tracking-[.25em] text-lime-300">Windsurf & wing · Landes · Béarn · Pays basque · Leucate</p>
         <h1 className="mt-2 max-w-xl font-display text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
           MOJITO <span className="italic text-lemon-300">WINDSURF</span> CLUB
         </h1>
@@ -50,7 +50,7 @@ export function Home() {
           ) : !ranking.length ? (
             <div className="space-y-2">
               <div className="skeleton h-16" />
-              <p className="text-sm text-mint-700">Analyse des 5 spots en cours…</p>
+              <p className="text-sm text-mint-700">Analyse des spots en cours…</p>
             </div>
           ) : best ? (
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">

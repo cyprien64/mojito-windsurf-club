@@ -16,6 +16,9 @@ import { beaufort, cardinal, cardinalLong, toKmh } from '../lib/wind';
 import { fmt, hhmm, hourLabel, relativeDay } from '../lib/format';
 import { LEVEL_META, SECTOR_RATING_META, levelFromScore } from '../lib/scoring';
 import { weatherInfo } from '../lib/weatherCodes';
+import { useGear } from '../hooks/useGear';
+import { GearPanel } from '../components/Gear';
+import { MarineCard } from '../components/MarineCard';
 
 const STRENGTH_COLOR: Record<string, string> = { faible: '#7BDCAE', modéré: '#3DBE6A', fort: '#F2994A', 'très fort': '#E5484D' };
 
@@ -26,6 +29,7 @@ export function Conditions() {
   const w = weather.data?.[spot.id];
   const ev = evaluations[spot.id];
   const cfg = settings.spots[spot.id] ?? spot.defaults;
+  const gear = useGear(spot.id);
 
   const header = (
     <div className="space-y-3">
@@ -168,6 +172,21 @@ export function Conditions() {
           />
         </div>
       </section>
+
+      {/* Matériel & discipline */}
+      {(gear.best ?? gear.now) && (
+        <section className="card card-pad">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-display text-lg font-extrabold">Quel matériel ? Windsurf ou wing foil ?</h2>
+            <Link to={`/materiel/${spot.id}`} className="text-sm font-bold text-mint-700 hover:underline">
+              Mon profil & détails →
+            </Link>
+          </div>
+          <GearPanel advice={(gear.best ?? gear.now)!} />
+        </section>
+      )}
+
+      {spot.marine && <MarineCard spotId={spot.id} />}
 
       {/* 12 prochaines heures */}
       <section className="card card-pad">

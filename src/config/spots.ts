@@ -6,8 +6,9 @@
 //  - Paramètres nautiques (`defaults`) : valeurs INITIALES proposées pour
 //    démarrer. Elles doivent être validées par les admins du club, puis
 //    ajustées depuis la page « Admin » du site (sans toucher au code).
-//  - Aucune orientation « dangereuse » n'est pré-remplie : c'est une
-//    décision de sécurité qui revient aux admins qui connaissent le spot.
+//  - Orientations « dangereuses » : seules celles qui sont évidentes (vent
+//    offshore vers le large à Saint-Jean-de-Luz) sont pré-remplies. Les autres
+//    sont une décision de sécurité qui revient aux admins qui connaissent le spot.
 // =====================================================================
 
 import type { SectorRating, SpotDefinition } from '../types';
@@ -38,6 +39,13 @@ export const SPOTS: SpotDefinition[] = [
     accent: '#3CCFC1',
     info:
       'Réservoir d’environ 190 ha. Deux mises à l’eau (Eslourenties et Lourenties). Les zones de quiétude (amont du grand et du petit lac) sont interdites d’accès.',
+    water: {
+      depth: 'moyenne',
+      weed: false,
+      surface: 'plat',
+      foil: 'prudence',
+      foilNote: 'Profondeur variable selon le niveau du réservoir : repérez les hauts-fonds et les berges avant de foiler.',
+    },
     defaults: {
       // Lac orienté NO–SE : les vents dans l'axe offrent le plus de fetch.
       sectors: sectors({ ideal: ['NO', 'ONO', 'SE', 'ESE'] }),
@@ -66,6 +74,13 @@ export const SPOTS: SpotDefinition[] = [
       caption: 'Lac de Léon',
     },
     info: 'Lac côtier landais, régime de vents d’ouest et brises thermiques en été.',
+    water: {
+      depth: 'faible',
+      weed: false,
+      surface: 'plat',
+      foil: 'prudence',
+      foilNote: 'Lac peu profond par endroits : restez dans les zones de plus d’un mètre avec un foil.',
+    },
     defaults: {
       sectors: sectors({ ideal: ['O', 'ONO', 'NO', 'OSO'] }),
       speed: { minRideable: 9, idealMin: 13, idealMax: 24, maxRideable: 32 },
@@ -93,6 +108,13 @@ export const SPOTS: SpotDefinition[] = [
     },
     info:
       'Dans la continuité du Goulet, cadre sauvage, eau plate à clapoteuse et peu profonde. Kite interdit. Vérifiez les règles saisonnières auprès de l’office de tourisme.',
+    water: {
+      depth: 'faible',
+      weed: true,
+      surface: 'clapot',
+      foil: 'déconseillé',
+      foilNote: 'Plan d’eau peu profond avec beaucoup d’algues : le foil risque de toucher le fond et de s’engluer.',
+    },
     defaults: {
       // Tramontane (NO à N) = vent dominant ; marin (SE) praticable.
       sectors: sectors({
@@ -126,6 +148,13 @@ export const SPOTS: SpotDefinition[] = [
     },
     info:
       'Spot historique entre Leucate-village et Port-Leucate, faible profondeur, idéal pour progresser. Kite interdit. Algues possibles selon la saison (aileron anti-algues conseillé).',
+    water: {
+      depth: 'très faible',
+      weed: true,
+      surface: 'plat',
+      foil: 'déconseillé',
+      foilNote: 'Très faible profondeur, algues et tables ostréicoles : foil fortement déconseillé.',
+    },
     defaults: {
       sectors: sectors({
         ideal: ['NO', 'ONO', 'NNO', 'O'],
@@ -157,6 +186,13 @@ export const SPOTS: SpotDefinition[] = [
     },
     info:
       'Deux bassins communicants, Tramontane dominante. Certaines sources signalent la fermeture de la base Éole et un accès restreint : vérifiez l’accès avant de vous déplacer.',
+    water: {
+      depth: 'faible',
+      weed: false,
+      surface: 'plat',
+      foil: 'prudence',
+      foilNote: 'Étang peu profond : mât court et repérage des zones profondes indispensables pour foiler.',
+    },
     defaults: {
       sectors: sectors({
         ideal: ['N', 'NNO', 'NO', 'ONO'],
@@ -166,6 +202,50 @@ export const SPOTS: SpotDefinition[] = [
       speed: { minRideable: 12, idealMin: 16, idealMax: 28, maxRideable: 38 },
       gusts: { maxGust: 45, maxGustFactor: 1.6 },
       notes: 'Réglages initiaux à valider par les admins. Vérifier l’accès au spot (base signalée fermée).',
+    },
+  },
+  {
+    id: 'saint-jean-de-luz',
+    name: 'Saint-Jean-de-Luz',
+    shortName: 'St-Jean-de-Luz',
+    location: 'Baie de Saint-Jean-de-Luz · Pays basque (64)',
+    aka: ['Baie de Saint-Jean-de-Luz', 'Socoa'],
+    kind: 'baie',
+    lat: 43.3887,
+    lon: -1.6627,
+    coordSource: 'Windfinder — spot « Saint-Jean-de-Luz » (Grande Plage)',
+    coordCheckedOn: '2026-11-13',
+    accent: '#3CCFC1',
+    photo: {
+      src: 'spots/saint-jean-de-luz.jpg',
+      author: 'Giorgio Galeotti',
+      license: 'CC BY-SA 4.0',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Baie_de_Saint-Jean-de-Luz_-_Saint-Jean-de-Luz,_France_-_July_16,_2024.jpg',
+      caption: 'Baie de Saint-Jean-de-Luz',
+    },
+    info:
+      'Baie fermée par trois digues, ouverte au nord-ouest : plan d’eau abrité de la houle mais exposé au vent de mer. Respectez les zones de baignade balisées et le chenal du port (Ciboure / Socoa).',
+    water: {
+      depth: 'profonde',
+      weed: false,
+      surface: 'clapot',
+      foil: 'ok',
+      foilNote: 'Eau profonde, adaptée au foil. Attention aux bateaux dans le chenal et aux baigneurs en saison.',
+    },
+    marine: { lat: 43.42, lon: -1.69, label: 'au large de la baie (hors digues)' },
+    defaults: {
+      // Baie ouverte au NO : vents d'ouest à nord-ouest = vent de mer.
+      // Vents de sud à sud-est = OFFSHORE, ils poussent vers le large → classés dangereux par prudence.
+      sectors: sectors({
+        ideal: ['O', 'ONO', 'NO'],
+        ok: ['NNO', 'N', 'OSO'],
+        bad: ['NNE', 'NE', 'ENE', 'E', 'SO', 'SSO'],
+        danger: ['ESE', 'SE', 'SSE', 'S'],
+      }),
+      speed: { minRideable: 11, idealMin: 15, idealMax: 25, maxRideable: 32 },
+      gusts: { maxGust: 38, maxGustFactor: 1.6 },
+      notes:
+        'Réglages initiaux à valider par les admins. Vents de S à ESE classés dangereux par défaut : offshore, ils poussent vers le large.',
     },
   },
 ];

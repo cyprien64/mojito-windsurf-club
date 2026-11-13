@@ -1,7 +1,7 @@
 // Service météo — API Open-Meteo (https://open-meteo.com), gratuite et sans clé
 // pour un usage non commercial. Toutes les vitesses sont demandées en nœuds.
 
-import type { CurrentWeather, DailySeries, Fetched, HourlySeries, ModelRunInfo, SpotDefinition, SpotModels, SpotWeather } from '../types';
+import type { MarineCurrent, CurrentWeather, DailySeries, Fetched, HourlySeries, ModelRunInfo, SpotDefinition, SpotModels, SpotWeather } from '../types';
 import { cached } from './cache';
 import { FORECAST_TTL_MS, MODELS_TTL_MS } from '../config/scoring';
 import { WEATHER_MODELS } from '../config/models';
@@ -233,4 +233,33 @@ export async function fetchModelRuns(force = false): Promise<Fetched<ModelRunInf
       availableTime: x.availableTime ? new Date(x.availableTime) : null,
     })),
   }));
+}
+
+/**
+ * Houle au large (Open-Meteo Marine) — uniquement pour les spots en mer
+ * qui déclarent un point `marine` dans spots.ts.
+ */
+export async function fetchMarine(point: { lat: number; lon: number }, force = false): Promise<Fetched<MarineCurrent>> {
+  return cached(
+    `marine:v1:${point.lat},${point.lon}`,
+    FORECAST_TTL_MS,
+    async () => {
+      const params = new URLSearchParams({
+        latitude: String(point.lat),
+        longitude: String(point.lon),
+        current: 'wave_height,wave_direction,wave_period,swell_wave_height',
+        timezone: TIMEZONE,
+      });
+      const body = await getJson(`https://marine-api.open-meteo.com/v1/marine?${params}`);
+      const c = body.current ?? {};
+      return {
+        time: c.time ?? '',
+        waveHeight: num(c.wave_height),
+        waveDirection: num(c.wave_direction),
+        wavePeriod: num(c.wave_period),
+        swellHeight: num(c.swell_wave_height),
+      };
+    },
+    force,
+  );
 }

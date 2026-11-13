@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { Bell, Camera, Compass, Gauge, History, Layers, LineChart, MapPin, Scale, Settings, Trophy } from 'lucide-react';
+import { Bell, Camera, Compass, Gauge, History, Layers, LineChart, MapPin, Sailboat, Scale, Settings, Trophy } from 'lucide-react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
@@ -19,6 +19,7 @@ export function useMainNav() {
 
 const SECONDARY = [
   { to: '/ou-naviguer', label: 'Où naviguer ?', icon: Trophy },
+  { to: '/materiel', label: 'Matériel', icon: Sailboat },
   { to: '/comparer', label: 'Comparer', icon: Scale },
   { to: '/historique', label: 'Historique', icon: History },
   { to: '/alertes', label: 'Alertes', icon: Bell },

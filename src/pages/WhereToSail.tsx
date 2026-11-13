@@ -13,6 +13,8 @@ import { ErrorBox, LoadingBlock } from '../components/States';
 import { cardinal, toKmh } from '../lib/wind';
 import { fmt, hhmm, relativeDay } from '../lib/format';
 import type { ScoringWeights } from '../types';
+import { useGear } from '../hooks/useGear';
+import { DisciplineChip } from '../components/Gear';
 
 const TONE_ICON: Record<Tone, JSX.Element> = {
   good: <CheckCircle2 className="h-4 w-4 shrink-0 text-rate-good" />,
@@ -47,6 +49,8 @@ function RankCard({ ev, rank, todayIso }: { ev: SpotEvaluation; rank: number; to
   const w = ev.bestWindow;
   const sport = [ev.components.speed, ev.components.gusts, ev.components.regularity].filter((x): x is number => x != null);
   const sportScore = sport.length ? Math.round((sport.reduce((a, b) => a + b, 0) / sport.length) * 100) : null;
+  const gear = useGear(ev.spotId);
+  const gearAdvice = gear.best ?? gear.now;
   const TrendIcon = ev.trend === 'hausse' ? TrendingUp : ev.trend === 'baisse' ? TrendingDown : Minus;
 
   return (
@@ -97,6 +101,14 @@ function RankCard({ ev, rank, todayIso }: { ev: SpotEvaluation; rank: number; to
                 </li>
               ))}
             </ul>
+          )}
+
+          {gearAdvice && (
+            <div className="mt-2">
+              <Link to={`/materiel/${ev.spotId}`}>
+                <DisciplineChip advice={gearAdvice} />
+              </Link>
+            </div>
           )}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -184,7 +196,7 @@ export function WhereToSail() {
       <header>
         <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">🌴 Où naviguer aujourd’hui ?</h1>
         <p className="mt-1 max-w-2xl text-sm text-ink-700">
-          Classement automatique des 5 spots à partir des prévisions réelles : orientation selon la configuration de chaque spot, vitesse, régularité,
+          Classement automatique des spots du club à partir des prévisions réelles : orientation selon la configuration de chaque spot, vitesse, régularité,
           rafales, évolution sur 3 h et accord entre modèles. Une orientation dangereuse bloque toujours la recommandation.
         </p>
         <div className="mt-2">

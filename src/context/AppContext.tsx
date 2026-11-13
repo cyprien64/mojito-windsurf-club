@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { ClubSettings, ModelRunInfo, SpotModels, SpotWeather } from '../types';
+import type { ClubSettings, ModelRunInfo, RiderProfile, SpotModels, SpotWeather } from '../types';
+import { DEFAULT_RIDER } from '../lib/gear';
 import { SPOTS, SPOT_BY_ID, DEFAULT_SPOT_ID } from '../config/spots';
 import { buildDefaultSettings, REFRESH_INTERVAL_MS } from '../config/scoring';
 import { fetchAllSpotsModels, fetchAllSpotsWeather, fetchModelRuns } from '../services/weather';
@@ -42,6 +43,8 @@ interface AppContextValue {
   setSpotId: (id: string) => void;
   favorites: string[];
   toggleFavorite: (id: string) => void;
+  rider: RiderProfile;
+  setRider: (r: RiderProfile) => void;
 }
 
 const Ctx = createContext<AppContextValue | null>(null);
@@ -160,6 +163,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // ---------- Profil du rider (conseil matériel) ----------
+  const [rider, setRiderState] = useState<RiderProfile>(() => ({ ...DEFAULT_RIDER, ...readLS<Partial<RiderProfile>>('mwc-rider', {}) }));
+  const setRider = useCallback((r: RiderProfile) => {
+    setRiderState(r);
+    writeLS('mwc-rider', r);
+  }, []);
+
   const value: AppContextValue = {
     settings,
     settingsSource,
@@ -176,6 +186,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSpotId,
     favorites,
     toggleFavorite,
+    rider,
+    setRider,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

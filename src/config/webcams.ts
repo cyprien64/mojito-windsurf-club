@@ -11,6 +11,7 @@
 //   - Office de tourisme de Leucate (https://www.tourisme-leucate.com/webcam/)
 //     qui intègre lui-même les lecteurs Viewsurf ci-dessous.
 //   - plages-landes.info (annuaire des webcams des Landes).
+//   - Office de tourisme de Saint-Jean-de-Luz (https://www.saint-jean-de-luz.com/webcams/).
 // =====================================================================
 
 import type { Webcam } from '../types';
@@ -96,6 +97,54 @@ export const WEBCAMS: Webcam[] = [
     sourcePage: 'https://www.plages-landes.info/en/webcams/',
     spotIds: ['leon'],
     proximity: 'Côte océane à ≈ 8 km du lac — ne montre pas le lac',
+    live: false,
+  },
+  {
+    id: 'sjdl-grande-plage',
+    title: 'Saint-Jean-de-Luz – Grande Plage depuis le Casino',
+    provider: 'Viewsurf · Office de tourisme de Saint-Jean-de-Luz',
+    kind: 'iframe',
+    url: 'https://pv.viewsurf.com/480/Saint-Jean-de-Luz?i=MzEyMDo',
+    sourcePage: 'https://www.saint-jean-de-luz.com/webcams/',
+    spotIds: ['saint-jean-de-luz'],
+    proximity: 'Vue sur la baie et la Grande Plage',
+    refreshSeconds: 600,
+    live: false,
+  },
+  {
+    id: 'sjdl-socoa',
+    title: 'Ciboure – Fort de Socoa',
+    provider: 'Viewsurf · Office de tourisme de Saint-Jean-de-Luz',
+    kind: 'iframe',
+    url: 'https://pv.viewsurf.com/480/Saint-Jean-de-Luz?i=MzExMDo',
+    sourcePage: 'https://www.saint-jean-de-luz.com/webcams/',
+    spotIds: ['saint-jean-de-luz'],
+    proximity: 'Côté Socoa, ouest de la baie',
+    refreshSeconds: 600,
+    live: false,
+  },
+  {
+    id: 'sjdl-chenal',
+    title: 'Entrée du port – le chenal',
+    provider: 'Viewsurf · Office de tourisme de Saint-Jean-de-Luz',
+    kind: 'iframe',
+    url: 'https://pv.viewsurf.com/480/Saint-Jean-de-Luz?i=MzEyMjo',
+    sourcePage: 'https://www.saint-jean-de-luz.com/webcams/',
+    spotIds: ['saint-jean-de-luz'],
+    proximity: 'Chenal Saint-Jean-de-Luz / Ciboure (zone de navigation des bateaux)',
+    refreshSeconds: 600,
+    live: false,
+  },
+  {
+    id: 'sjdl-sainte-barbe',
+    title: 'Sainte-Barbe – vagues des Flots Bleus',
+    provider: 'Viewsurf · Office de tourisme de Saint-Jean-de-Luz',
+    kind: 'iframe',
+    url: 'https://pv.viewsurf.com/480/Saint-Jean-de-Luz?i=MzEyNjo',
+    sourcePage: 'https://www.saint-jean-de-luz.com/webcams/',
+    spotIds: ['saint-jean-de-luz'],
+    proximity: 'Extérieur de la baie, côté Sainte-Barbe (état de la mer)',
+    refreshSeconds: 600,
     live: false,
   },
 ];

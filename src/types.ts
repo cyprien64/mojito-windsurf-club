@@ -59,6 +59,17 @@ export interface SpotPhoto {
   caption: string;
 }
 
+/** Caractéristiques du plan d'eau — utilisées pour le conseil matériel. */
+export interface WaterInfo {
+  depth: 'très faible' | 'faible' | 'moyenne' | 'profonde';
+  /** Algues fréquentes (aileron anti-algues conseillé). */
+  weed: boolean;
+  surface: 'plat' | 'clapot' | 'vagues';
+  /** Pratique du foil (wing foil, windfoil). */
+  foil: 'ok' | 'prudence' | 'déconseillé';
+  foilNote: string;
+}
+
 export interface SpotDefinition {
   id: string;
   name: string;
@@ -66,7 +77,7 @@ export interface SpotDefinition {
   location: string;
   /** Noms alternatifs (orthographes rencontrées). */
   aka?: string[];
-  kind: 'lac' | 'étang';
+  kind: 'lac' | 'étang' | 'baie';
   lat: number;
   lon: number;
   /** D'où viennent les coordonnées (traçabilité). */
@@ -77,8 +88,35 @@ export interface SpotDefinition {
   accent: string;
   /** Informations utiles affichées sur le dashboard. */
   info?: string;
+  /** Plan d'eau (profondeur, algues, foil). */
+  water: WaterInfo;
+  /** Point en mer pour les données de houle (Open-Meteo Marine), uniquement pour les spots en mer. */
+  marine?: { lat: number; lon: number; label: string };
   /** Paramètres par défaut (avant personnalisation par les admins). */
   defaults: SpotWindConfig;
+}
+
+// ---------- Profil du rider (conseil matériel) ----------
+
+export type RiderLevel = 'débutant' | 'intermédiaire' | 'confirmé' | 'expert';
+
+export interface RiderProfile {
+  weightKg: number;
+  level: RiderLevel;
+  /** Tailles de voiles possédées (m²), facultatif. */
+  sails: number[];
+  /** Tailles d'ailes de wing possédées (m²), facultatif. */
+  wings: number[];
+  /** Le rider pratique-t-il le wing foil ? */
+  doesWing: boolean;
+}
+
+export interface MarineCurrent {
+  time: string;
+  waveHeight: number | null;
+  waveDirection: number | null;
+  wavePeriod: number | null;
+  swellHeight: number | null;
 }
 
 // ---------- Données météo normalisées ----------

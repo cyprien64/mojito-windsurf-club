@@ -44,7 +44,7 @@ export function Waves({ className = '' }: { className?: string }) {
 }
 
 /** Illustration de repli lorsqu'un spot n'a pas de photo libre de droits. */
-export function SpotIllustration({ accent, kind }: { accent: string; kind: 'lac' | 'étang' }) {
+export function SpotIllustration({ accent, kind }: { accent: string; kind: 'lac' | 'étang' | 'baie' }) {
   const uid = accent.replace(/[^a-zA-Z0-9]/g, '');
   return (
     <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true">
