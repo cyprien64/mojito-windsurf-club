@@ -115,6 +115,11 @@ export interface RiderProfile {
   wings: number[];
   /** Le rider pratique-t-il le wing foil ? */
   doesWing: boolean;
+  /** Marques / modèles du matériel (pré-remplissent les retours de session). */
+  sailBrand?: string;
+  boardBrand?: string;
+  wingBrand?: string;
+  foilBoardBrand?: string;
 }
 
 export interface MarineCurrent {

@@ -165,6 +165,7 @@ export const WEBCAMS: Webcam[] = [
 export const NO_WEBCAM_NOTE: Record<string, string> = {
   leon: 'Aucune webcam publique filmant le lac de Léon n’a été trouvée.',
   gabas: 'Aucune webcam publique n’a été trouvée pour le lac du Gabas.',
+  lourdes: 'Aucune webcam publique filmant le lac de Lourdes n’a été trouvée.',
   hossegor: 'Aucune webcam publique filmant le lac d’Hossegor n’a été trouvée.',
   soustons: 'Aucune webcam publique filmant l’étang de Soustons n’a été trouvée.',
   gruissan: 'Aucune webcam publique filmant l’étang de Mateille n’a été trouvée. Utilisez la balise Pioupiou du spot pour le vent réel.',

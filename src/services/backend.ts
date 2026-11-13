@@ -54,11 +54,21 @@ export interface SessionReport {
   /** Vent moyen du modèle (nds) au moment du retour — sert aux statistiques du club. */
   wind_kn: number | null;
   comment: string;
+  /** Marque / modèle de la voile ou de l'aile. */
+  sail_brand: string;
+  /** Marque / modèle de la planche. */
+  board_brand: string;
+  /** Distance parcourue (km), déclarative (GPS, montre…). */
+  distance_km: number | null;
+  /** Durée de la session (minutes). */
+  duration_min: number | null;
+  /** Vitesse max (nœuds), lue sur un GPS / une montre. */
+  max_speed_kn: number | null;
 }
 
-export async function listReports(sinceHours = 24 * 30): Promise<SessionReport[]> {
+export async function listReports(sinceHours = 24 * 400): Promise<SessionReport[]> {
   const since = new Date(Date.now() - sinceHours * 3600 * 1000).toISOString();
-  return call<SessionReport[]>(`/rest/v1/session_reports?select=*&created_at=gte.${encodeURIComponent(since)}&order=created_at.desc&limit=500`);
+  return call<SessionReport[]>(`/rest/v1/session_reports?select=*&created_at=gte.${encodeURIComponent(since)}&order=created_at.desc&limit=3000`);
 }
 
 export async function addReport(r: SessionReport): Promise<SessionReport> {
@@ -72,6 +82,35 @@ export async function addReport(r: SessionReport): Promise<SessionReport> {
 
 export async function deleteReport(id: number, token: string): Promise<void> {
   await call(`/rest/v1/session_reports?id=eq.${id}`, { method: 'DELETE' }, token);
+}
+
+// ---------------- Micro-compétitions ----------------
+
+export type CompetitionMetric = 'distance' | 'duration' | 'sessions' | 'avg_speed' | 'max_speed';
+
+export interface Competition {
+  id?: number;
+  created_at?: string;
+  title: string;
+  metric: CompetitionMetric;
+  spot_id: string | null;
+  discipline: 'windsurf' | 'wingfoil' | null;
+  /** Dates incluses, format AAAA-MM-JJ. */
+  starts_on: string;
+  ends_on: string;
+  description: string;
+}
+
+export async function listCompetitions(): Promise<Competition[]> {
+  return call<Competition[]>('/rest/v1/competitions?select=*&order=starts_on.desc&limit=200');
+}
+
+export async function addCompetition(c: Competition, session: AdminSession): Promise<void> {
+  await call('/rest/v1/competitions', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(c) }, session.token);
+}
+
+export async function deleteCompetition(id: number, session: AdminSession): Promise<void> {
+  await call(`/rest/v1/competitions?id=eq.${id}`, { method: 'DELETE' }, session.token);
 }
 
 // ---------------- Réglages du club ----------------

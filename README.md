@@ -37,6 +37,7 @@ React · TypeScript · Vite · Tailwind CSS · Recharts · Lucide · Open-Meteo.
 | **Matériel** | Profil du rider (poids, niveau, voiles et ailes possédées) puis conseils : taille de voile, volume de planche, aileron, aile de wing, volume de planche de foil, aile avant, longueur de mât, et choix **windsurf ou wing foil** |
 | **Week-end** | Meilleur spot et meilleur créneau du samedi et du dimanche |
 | **Sur l'eau** | « J'y suis / j'y étais » : qui navigue en ce moment, retours de session, tailles de voile et d'aile réellement utilisées par le club *(nécessite Supabase)* |
+| **Classement** | Classement général (distance, temps sur l'eau, sessions, vitesse moyenne, vitesse max) sur 7 jours, 30 jours, la saison ou tout, filtrable par spot, et **micro-compétitions** créées par les admins (période, spot, discipline, critère) avec podium *(nécessite Supabase)* |
 | **Carte** | Carte OpenStreetMap des spots (couleur = navigabilité) et des balises de vent |
 | **Comparer** | Plusieurs spots côte à côte (tableau et graphique 48 h) |
 | **Historique** | 7 derniers jours (valeurs modélisées) et heures navigables par jour |
@@ -153,6 +154,7 @@ Tout se trouve dans **`src/config/spots.ts`**. Chaque spot contient :
 | Étang de Soustons | 43.7703, -1.3277 | OpenStreetMap, centre de l'« Étang de Soustons » |
 | Gruissan – Étang de Mateille | 43.1252, 3.1260 | OpenStreetMap / Nominatim, « Étang de Mateille » |
 | Leucate – La Franqui (mer) | 42.9419, 3.0388 | OpenStreetMap, poste de secours des Coussoules |
+| Lac de Lourdes | 43.1083, -0.0858 | OpenStreetMap, centre du « Lac de Lourdes » |
 
 > Le « Lac de Cabas / Esclourentis » demandé correspond au **lac du Gabas** à **Eslourenties-Daban** (64) : c'est l'orthographe officielle utilisée dans le site.
 > Pour plus de précision, remplacez ces coordonnées par celles de votre point de mise à l'eau habituel (clic droit dans Google Maps, puis copier les coordonnées).
@@ -313,6 +315,8 @@ Ces fonctions ont besoin d'une petite base de données : retours de session (« 
    - `SUPABASE_URL` : l'URL du projet ;
    - `SUPABASE_ANON_KEY` : la clé anon.
 7. Relancez le déploiement (**Actions → Build & deploy → Run workflow**).
+
+> **Mise à jour du schéma** : après une nouvelle version du site (ajout de colonnes ou de tables), relancez simplement `supabase/schema.sql` dans le SQL Editor. Le script peut être exécuté plusieurs fois sans erreur.
 
 Les admins se connectent ensuite dans la page **Admin** avec leur e-mail (code reçu par e-mail), puis **Publier ces réglages** : tous les membres les reçoivent immédiatement.
 

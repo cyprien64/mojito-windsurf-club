@@ -45,7 +45,14 @@ export function Sessions() {
     board: null,
     wind_kn: null,
     comment: '',
+    sail_brand: rider.sailBrand ?? '',
+    board_brand: rider.boardBrand ?? '',
+    distance_km: null,
+    duration_min: null,
+    max_speed_kn: null,
   });
+  const [hours, setHours] = useState('');
+  const [minutes, setMinutes] = useState('');
   const [sending, setSending] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const admin = loadAdminSession();
@@ -60,14 +67,28 @@ export function Sessions() {
     setMsg(null);
     try {
       const ev = evaluations[form.spot_id];
-      await addReport({ ...form, author: form.author.trim().slice(0, 40), comment: form.comment.slice(0, 500), wind_kn: ev?.speed != null ? Math.round(ev.speed) : null });
+      const dur = (Number(hours) || 0) * 60 + (Number(minutes) || 0);
+      if (form.distance_km != null && (form.distance_km <= 0 || form.distance_km > 250)) throw new Error('distance invalide (0 à 250 km).');
+      if (dur > 720) throw new Error('durée invalide (12 h maximum).');
+      if (form.max_speed_kn != null && (form.max_speed_kn <= 0 || form.max_speed_kn > 55)) throw new Error('vitesse max invalide (0 à 55 nds).');
+      await addReport({
+        ...form,
+        author: form.author.trim().slice(0, 40),
+        comment: form.comment.slice(0, 500),
+        sail_brand: form.sail_brand.trim().slice(0, 60),
+        board_brand: form.board_brand.trim().slice(0, 60),
+        duration_min: dur > 0 ? dur : null,
+        wind_kn: ev?.speed != null ? Math.round(ev.speed) : null,
+      });
+      setHours('');
+      setMinutes('');
       try {
         localStorage.setItem('mwc-author', form.author.trim());
       } catch {
         /* ignore */
       }
       setMsg('Merci ! Votre retour est publié.');
-      set({ comment: '' });
+      set({ comment: '', distance_km: null, max_speed_kn: null });
       reloadReports();
     } catch (e) {
       setMsg(`Envoi impossible : ${(e as Error).message}`);
@@ -132,7 +153,18 @@ export function Sessions() {
               </label>
               <label className="block">
                 <span className="label">Discipline</span>
-                <select className="input mt-1" value={form.discipline} onChange={(e) => set({ discipline: e.target.value as SessionReport['discipline'] })}>
+                <select
+                  className="input mt-1"
+                  value={form.discipline}
+                  onChange={(e) => {
+                    const d = e.target.value as SessionReport['discipline'];
+                    set({
+                      discipline: d,
+                      sail_brand: (d === 'windsurf' ? rider.sailBrand : rider.wingBrand) ?? '',
+                      board_brand: (d === 'windsurf' ? rider.boardBrand : rider.foilBoardBrand) ?? '',
+                    });
+                  }}
+                >
                   <option value="windsurf">Planche à voile</option>
                   <option value="wingfoil">Wing foil</option>
                 </select>
@@ -158,6 +190,47 @@ export function Sessions() {
                   onChange={(e) => {
                     const n = Number(e.target.value);
                     set({ board: e.target.value === '' || !Number.isFinite(n) ? null : Math.round(n) });
+                  }}
+                />
+              </label>
+              <label className="block">
+                <span className="label">{form.discipline === 'windsurf' ? 'Marque / modèle de voile' : 'Marque / modèle d’aile'}</span>
+                <input className="input mt-1" placeholder="ex. Duotone E-Pace 6.0" value={form.sail_brand} onChange={(e) => set({ sail_brand: e.target.value })} maxLength={60} />
+              </label>
+              <label className="block">
+                <span className="label">Marque / modèle de planche</span>
+                <input className="input mt-1" placeholder="ex. Starboard Carve 131" value={form.board_brand} onChange={(e) => set({ board_brand: e.target.value })} maxLength={60} />
+              </label>
+              <label className="block">
+                <span className="label">Distance (km)</span>
+                <input
+                  className="input mt-1"
+                  inputMode="decimal"
+                  value={form.distance_km ?? ''}
+                  onChange={(e) => {
+                    const n = Number(e.target.value.replace(',', '.'));
+                    set({ distance_km: e.target.value === '' || !Number.isFinite(n) ? null : Math.round(n * 10) / 10 });
+                  }}
+                />
+              </label>
+              <div>
+                <span className="label">Durée de la session</span>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <input className="input text-center" inputMode="numeric" placeholder="h" value={hours} onChange={(e) => setHours(e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} aria-label="Heures" />
+                  <span className="font-bold">h</span>
+                  <input className="input text-center" inputMode="numeric" placeholder="min" value={minutes} onChange={(e) => setMinutes(e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} aria-label="Minutes" />
+                  <span className="font-bold">min</span>
+                </div>
+              </div>
+              <label className="block">
+                <span className="label">Vitesse max (nds, GPS / montre)</span>
+                <input
+                  className="input mt-1"
+                  inputMode="decimal"
+                  value={form.max_speed_kn ?? ''}
+                  onChange={(e) => {
+                    const n = Number(e.target.value.replace(',', '.'));
+                    set({ max_speed_kn: e.target.value === '' || !Number.isFinite(n) ? null : Math.round(n * 10) / 10 });
                   }}
                 />
               </label>
@@ -194,7 +267,13 @@ export function Sessions() {
               </button>
               {msg && <span className="text-sm font-bold text-mint-700">{msg}</span>}
             </div>
-            <p className="mt-2 text-[11px] text-ink-700/70">Publié pour tous les visiteurs du site. N’indiquez que votre prénom.</p>
+            <p className="mt-2 text-[11px] text-ink-700/70">
+              Publié pour tous les visiteurs du site. N’indiquez que votre prénom. Distance, durée et vitesse comptent pour le{' '}
+              <Link to="/classement" className="underline">
+                classement
+              </Link>{' '}
+              : utilisez toujours le même prénom.
+            </p>
           </section>
 
           <section className="card card-pad">
@@ -251,6 +330,14 @@ export function Sessions() {
                       </button>
                     )}
                   </div>
+                  {(r.sail_brand || r.board_brand || r.distance_km != null || r.duration_min != null || r.max_speed_kn != null) && (
+                    <p className="mt-0.5 text-xs text-ink-700">
+                      {[r.sail_brand, r.board_brand].filter(Boolean).join(' · ')}
+                      {r.distance_km != null && ` · ${r.distance_km} km`}
+                      {r.duration_min != null && ` · ${Math.floor(r.duration_min / 60)} h ${String(r.duration_min % 60).padStart(2, '0')}`}
+                      {r.max_speed_kn != null && ` · pointe ${r.max_speed_kn} nds`}
+                    </p>
+                  )}
                   {r.comment && <p className="mt-0.5 text-ink-800">{r.comment}</p>}
                 </li>
               ))}

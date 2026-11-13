@@ -20,6 +20,13 @@ create table if not exists public.session_reports (
   comment text not null default '' check (char_length(comment) <= 500)
 );
 
+-- Colonnes ajoutées ensuite (matériel, distance, durée, vitesse) : sans risque si déjà présentes
+alter table public.session_reports add column if not exists sail_brand text not null default '' check (char_length(sail_brand) <= 60);
+alter table public.session_reports add column if not exists board_brand text not null default '' check (char_length(board_brand) <= 60);
+alter table public.session_reports add column if not exists distance_km numeric check (distance_km is null or (distance_km > 0 and distance_km <= 250));
+alter table public.session_reports add column if not exists duration_min integer check (duration_min is null or (duration_min > 0 and duration_min <= 720));
+alter table public.session_reports add column if not exists max_speed_kn numeric check (max_speed_kn is null or (max_speed_kn > 0 and max_speed_kn <= 55));
+
 alter table public.session_reports enable row level security;
 
 -- Tout le monde peut lire et publier un retour ; seuls les admins connectés suppriment.
@@ -29,6 +36,28 @@ drop policy if exists "publication publique" on public.session_reports;
 create policy "publication publique" on public.session_reports for insert with check (true);
 drop policy if exists "suppression admin" on public.session_reports;
 create policy "suppression admin" on public.session_reports for delete to authenticated using (true);
+
+-- Micro-compétitions (créées par les admins)
+create table if not exists public.competitions (
+  id bigint generated always as identity primary key,
+  created_at timestamptz not null default now(),
+  title text not null check (char_length(title) between 1 and 80),
+  metric text not null check (metric in ('distance', 'duration', 'sessions', 'avg_speed', 'max_speed')),
+  spot_id text,
+  discipline text check (discipline is null or discipline in ('windsurf', 'wingfoil')),
+  starts_on date not null,
+  ends_on date not null check (ends_on >= starts_on),
+  description text not null default '' check (char_length(description) <= 200)
+);
+
+alter table public.competitions enable row level security;
+
+drop policy if exists "lecture publique des défis" on public.competitions;
+create policy "lecture publique des défis" on public.competitions for select using (true);
+drop policy if exists "création admin des défis" on public.competitions;
+create policy "création admin des défis" on public.competitions for insert to authenticated with check (true);
+drop policy if exists "suppression admin des défis" on public.competitions;
+create policy "suppression admin des défis" on public.competitions for delete to authenticated using (true);
 
 -- Réglages partagés du club (une seule ligne, id = 1)
 create table if not exists public.club_settings (

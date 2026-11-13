@@ -378,6 +378,41 @@ export const SPOTS: SpotDefinition[] = [
         'Réglages initiaux à valider par les admins. Vents d’ouest classés dangereux par défaut : offshore, ils poussent vers le large.',
     },
   },
+  {
+    id: 'lourdes',
+    name: 'Lac de Lourdes',
+    shortName: 'Lourdes',
+    location: 'Lourdes (65) · Hautes-Pyrénées',
+    kind: 'lac',
+    lat: 43.1083,
+    lon: -0.0858,
+    coordSource: 'OpenStreetMap — centre de l’emprise du « Lac de Lourdes » (way 42425195)',
+    coordCheckedOn: '2026-11-13',
+    accent: '#4CC98F',
+    photo: {
+      src: 'spots/lourdes.jpg',
+      author: 'Lourdes Tourisme',
+      license: 'CC BY-SA 3.0',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Lac_de_Lourdes.jpg',
+      caption: 'Lac de Lourdes',
+    },
+    info:
+      'Lac glaciaire d’environ 1,3 km de long, orienté est-ouest, au pied des Pyrénées. Vent souvent faible et irrégulier (effets de relief) : les journées de vent d’ouest bien établi sont les meilleures. Vérifiez les règles locales de navigation.',
+    water: {
+      depth: 'moyenne',
+      weed: false,
+      surface: 'plat',
+      foil: 'prudence',
+      foilNote: 'Bords peu profonds et zone de tourbière à l’ouest : foilez au centre du lac.',
+    },
+    defaults: {
+      // Lac orienté est-ouest : les vents dans l'axe offrent le plus de fetch.
+      sectors: sectors({ ideal: ['O', 'ONO', 'OSO', 'E'], bad: ['N', 'S'] }),
+      speed: { minRideable: 8, idealMin: 12, idealMax: 22, maxRideable: 28 },
+      gusts: { maxGust: 32, maxGustFactor: 1.8 },
+      notes: 'Réglages initiaux à valider par les admins. Lac de montagne : vent souvent rafaleux.',
+    },
+  },
 ];
 
 export const SPOT_BY_ID: Record<string, SpotDefinition> = Object.fromEntries(SPOTS.map((s) => [s.id, s]));

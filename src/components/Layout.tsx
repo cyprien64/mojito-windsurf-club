@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { Bell, CalendarDays, Camera, Compass, Gauge, History, Layers, LineChart, Map as MapIcon, MapPin, Sailboat, Scale, Settings, Trophy, Users } from 'lucide-react';
+import { Bell, CalendarDays, Camera, Compass, Gauge, History, Layers, LineChart, Map as MapIcon, MapPin, Sailboat, Scale, Settings, Trophy, Users, Medal } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { InstallPrompt } from './InstallPrompt';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
@@ -23,6 +23,7 @@ const SECONDARY = [
   { to: '/ou-naviguer', label: 'Où naviguer ?', icon: Trophy },
   { to: '/weekend', label: 'Week-end', icon: CalendarDays },
   { to: '/sessions', label: 'Sur l’eau', icon: Users },
+  { to: '/classement', label: 'Classement', icon: Medal },
   { to: '/carte', label: 'Carte', icon: MapIcon },
   { to: '/materiel', label: 'Matériel', icon: Sailboat },
   { to: '/comparer', label: 'Comparer', icon: Scale },

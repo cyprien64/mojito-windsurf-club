@@ -216,6 +216,19 @@ export function RiderForm() {
           onBlur={(e) => set({ wings: parseList(e.target.value).sort((a, b) => a - b) })}
         />
       </label>
+      {(
+        [
+          ['sailBrand', 'Ma voile (marque / modèle)', 'ex. NeilPryde V8'],
+          ['boardBrand', 'Ma planche windsurf', 'ex. Starboard Carve 131'],
+          ['wingBrand', 'Mon aile de wing', 'ex. F-One Strike V3'],
+          ['foilBoardBrand', 'Ma planche de foil', 'ex. Takuma Kujira 95'],
+        ] as const
+      ).map(([key, label, ph]) => (
+        <label key={key} className="block">
+          <span className="label">{label}</span>
+          <input className="input mt-1" placeholder={ph} defaultValue={rider[key] ?? ''} maxLength={60} onBlur={(e) => set({ [key]: e.target.value.trim() } as Partial<RiderProfile>)} />
+        </label>
+      ))}
       <label className="flex items-center gap-2 text-sm font-bold sm:col-span-2">
         <input type="checkbox" className="h-5 w-5 accent-mint-600" checked={rider.doesWing} onChange={(e) => set({ doesWing: e.target.checked })} />
         Je pratique aussi le wing foil
