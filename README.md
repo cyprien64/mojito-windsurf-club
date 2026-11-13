@@ -1,0 +1,290 @@
+# 🌴 Mojito Windsurf Club
+
+**Find your wind. Find your spot.**
+
+Plateforme météo du club : conditions actuelles, prévisions sur 48 h et 7 jours, comparaison des modèles météo (ECMWF, GFS, ICON, ARPEGE, AROME), webcams et une fonctionnalité centrale, **« Où naviguer aujourd'hui ? »**, qui classe automatiquement les 5 spots du club.
+
+React · TypeScript · Vite · Tailwind CSS · Recharts · Lucide · Open-Meteo. PWA installable sur smartphone.
+
+---
+
+## Sommaire
+
+1. [Fonctionnalités](#fonctionnalités)
+2. [Installation et lancement local](#installation-et-lancement-local)
+3. [Arborescence](#arborescence)
+4. [Modifier les spots](#modifier-les-spots)
+5. [Modifier les paramètres de vent (sans code)](#modifier-les-paramètres-de-vent-sans-code)
+6. [Ajouter une webcam](#ajouter-une-webcam)
+7. [Algorithme de notation](#algorithme-de-notation)
+8. [Déploiement](#déploiement)
+9. [API et sources utilisées](#api-et-sources-utilisées)
+10. [Notifications (évolutions)](#notifications-évolutions)
+11. [Limites connues](#limites-connues)
+
+---
+
+## Fonctionnalités
+
+| Page | Contenu |
+|---|---|
+| **Spots** (accueil) | Carte « 🌴 Où naviguer aujourd'hui ? », 5 cartes spots (photo, vent, rafales, direction, température, navigabilité, créneau conseillé), favoris ⭐ |
+| **Où naviguer ?** | Classement 1 → 5 avec note /100, explications, meilleur créneau (début, dégradation, durée), avertissements de sécurité, détail des critères |
+| **Conditions** | Vent moyen et rafales (nœuds et km/h), direction (degrés et cardinal), rose des vents du spot, navigabilité, force, orientation, stabilité, rafales, meilleur créneau, température, ressenti, pression, humidité, nuages, pluie, lever et coucher du soleil |
+| **Prévisions** | 48 h heure par heure (vent, rafales, direction, température, pluie), créneaux favorables surlignés, sélection de période ; 7 jours jour par jour |
+| **Modèles météo** | Tableau ECMWF / GFS / ICON / ICON-EU / ARPEGE / AROME HD, heure du dernier run de chaque modèle, graphique comparatif, indicateur d'accord (forte convergence, convergence moyenne, forte divergence) |
+| **Webcams** | Webcams publiques intégrées (Viewsurf / office de tourisme de Leucate), rechargement automatique, plein écran, affichage multiple, liens vers les webcams proches pour les spots sans caméra |
+| **Comparer** | Plusieurs spots côte à côte (tableau et graphique 48 h) |
+| **Historique** | 7 derniers jours (valeurs modélisées) et heures navigables par jour |
+| **Alertes** | Règles de notification (vent > X nds, conditions favorables, modèles qui convergent) |
+| **Admin** | Rose des vents interactive (idéale, acceptable, défavorable, dangereuse) par spot, seuils de vent et de rafales, pondérations, export et import |
+
+Règles d'honnêteté appliquées partout :
+- toutes les données viennent d'Open-Meteo, sans aucune valeur inventée. Une donnée manquante s'affiche « — » ou « indisponible » ;
+- les conditions « actuelles » sont des **valeurs de modèle**, pas des mesures de station ; c'est indiqué à l'écran ;
+- chaque modèle est nommé, avec l'heure de son dernier run ;
+- aucune webcam n'est simulée : un spot sans webcam l'indique clairement ;
+- une recommandation n'est jamais présentée comme une garantie de sécurité.
+
+---
+
+## Installation et lancement local
+
+Prérequis : **Node.js 18+** (https://nodejs.org).
+
+```bash
+git clone https://github.com/<votre-compte>/mojito-windsurf-club.git
+cd mojito-windsurf-club
+npm install
+npm run dev          # http://localhost:5173
+```
+
+Autres commandes :
+
+```bash
+npm run build        # vérification TypeScript + build de production dans dist/
+npm run preview      # sert le build localement
+```
+
+---
+
+## Arborescence
+
+```
+mojito-windsurf-club/
+├── .github/workflows/deploy.yml   # build + déploiement GitHub Pages automatique
+├── public/
+│   ├── club-settings.json         # réglages partagés du club (exportés depuis Admin)
+│   ├── manifest.webmanifest       # PWA
+│   ├── sw.js                      # service worker (hors ligne, notifications)
+│   ├── icons/                     # logo et icônes PWA
+│   └── spots/                     # photos des spots (Wikimedia Commons, crédits dans spots.ts)
+├── src/
+│   ├── config/
+│   │   ├── spots.ts               # ⭐ FICHIER CENTRAL : spots, GPS, orientations, seuils
+│   │   ├── webcams.ts             # ⭐ liste des webcams
+│   │   ├── models.ts              # modèles météo comparés
+│   │   └── scoring.ts             # pondérations, seuils de notation, fréquences d'actualisation
+│   ├── services/
+│   │   ├── weather.ts             # API Open-Meteo (prévisions, modèles, métadonnées des runs)
+│   │   ├── cache.ts               # cache localStorage + repli hors ligne
+│   │   ├── webcams.ts             # service webcams
+│   │   ├── settings.ts            # paramètres administrables (local / club / défaut)
+│   │   └── notifications.ts       # règles d'alerte et notifications
+│   ├── lib/
+│   │   ├── scoring.ts             # ⭐ algorithme de notation, créneaux, accord des modèles
+│   │   ├── wind.ts                # directions, secteurs, Beaufort, conversions
+│   │   ├── format.ts              # formatage FR
+│   │   └── weatherCodes.ts        # codes météo WMO
+│   ├── context/AppContext.tsx     # état global : données, évaluations, favoris, réglages
+│   ├── hooks/useSpotRoute.ts
+│   ├── components/                # Layout, WindRose, SpotCard, RatingBadge, WindArrow…
+│   ├── pages/                     # Home, WhereToSail, Conditions, Forecast, Models, Webcams,
+│   │                              # Compare, HistoryPage, Alerts, Admin
+│   ├── App.tsx                    # routes
+│   ├── main.tsx
+│   ├── index.css
+│   └── types.ts
+├── index.html
+├── package.json
+├── tailwind.config.js
+├── vite.config.ts
+├── netlify.toml / vercel.json     # déploiement alternatif
+└── README.md
+```
+
+---
+
+## Modifier les spots
+
+Tout se trouve dans **`src/config/spots.ts`**. Chaque spot contient :
+
+```ts
+{
+  id: 'la-mine',                       // identifiant unique (utilisé dans les URL)
+  name: 'Leucate – La Mine',
+  shortName: 'La Mine',
+  location: 'Étang de Leucate · Leucate (11)',
+  kind: 'étang',                       // 'lac' | 'étang'
+  lat: 42.8971, lon: 3.0155,           // coordonnées GPS du point de navigation
+  coordSource: '…',                    // d'où viennent les coordonnées
+  coordCheckedOn: '2026-11-13',
+  photo: { src: 'spots/la-mine.jpg', author: '…', license: 'CC BY-SA 3.0', sourceUrl: '…', caption: '…' },
+  info: 'Texte affiché sur le dashboard',
+  defaults: { sectors: […16 valeurs…], speed: {…}, gusts: {…}, notes: '' },
+}
+```
+
+**Coordonnées utilisées (vérifiées le 13/11/2026) :**
+
+| Spot | Lat, Lon | Source |
+|---|---|---|
+| Lac du Gabas / Eslourenties | 43.2803, -0.1291 | OpenStreetMap, centre du « Réservoir du Gabas » |
+| Lac de Léon | 43.8945, -1.3205 | OpenStreetMap / Nominatim, « Étang de Léon » |
+| Leucate – La Mine | 42.8971, 3.0155 | Fiche spot unplug-kitesurf.com |
+| Leucate – Parc à huîtres | 42.8732, 3.0350 | Windfinder, spot « Parc à huîtres » |
+| Leucate – Éole | 42.8321, 3.0347 | Windfinder, spot « Eole » |
+
+> Le « Lac de Cabas / Esclourentis » demandé correspond au **lac du Gabas** à **Eslourenties-Daban** (64) : c'est l'orthographe officielle utilisée dans le site.
+> Pour plus de précision, remplacez ces coordonnées par celles de votre point de mise à l'eau habituel (clic droit dans Google Maps, puis copier les coordonnées).
+
+**Ajouter un spot** : ajoutez un objet au tableau `SPOTS`. Il apparaît automatiquement partout (accueil, classement, prévisions, modèles, admin…).
+
+**Photos** : déposez une image dans `public/spots/` et renseignez `photo`. Sans photo, une illustration est affichée.
+
+---
+
+## Modifier les paramètres de vent (sans code)
+
+Page **Admin** du site :
+
+1. Choisissez le spot.
+2. Choisissez une catégorie (**Idéale**, **Acceptable**, **Défavorable**, **Dangereuse**) puis cliquez sur les secteurs de la rose des vents (16 secteurs de 22,5°, avec degrés et points cardinaux).
+3. Réglez les plages de vent : *trop faible sous*, *idéal de… à…*, *excessif au-delà*.
+4. Réglez les rafales : rafale maximale acceptable et rapport rafale / vent moyen maximal.
+5. Ajustez les pondérations de la note /100 et le score minimum d'un « bon créneau ».
+6. **Enregistrer** : les réglages sont conservés dans ce navigateur.
+
+### Partager les réglages avec tout le club
+
+Le site est statique (pas de base de données), donc :
+
+1. Dans Admin, cliquez sur **Exporter** pour obtenir `club-settings.json`.
+2. Sur GitHub, remplacez `public/club-settings.json` par ce fichier (*Add file → Upload files*, puis commit).
+3. Le site se redéploie tout seul : tous les membres reçoivent les mêmes réglages.
+
+Ordre de priorité : réglages locaux de l'appareil > `club-settings.json` > valeurs par défaut du code.
+
+> ⚠️ Les valeurs par défaut sont une **base de départ à valider** (vent dominant, axe du plan d'eau). **Aucune orientation « dangereuse » n'est pré-remplie** : c'est une décision de sécurité qui revient aux admins qui connaissent les spots (vent offshore, zones interdites…).
+> La page Admin n'est pas protégée par mot de passe : sur un site statique, une protection côté navigateur ne serait pas une vraie sécurité. Seul un fichier `club-settings.json` validé dans le dépôt change les réglages pour tout le monde, et cela passe par GitHub.
+
+---
+
+## Ajouter une webcam
+
+Éditez **`src/config/webcams.ts`** :
+
+```ts
+{
+  id: 'ma-webcam',
+  title: 'Nom affiché',
+  provider: 'Fournisseur',
+  kind: 'iframe',            // 'iframe' (lecteur intégrable) | 'image' (JPEG rafraîchi) | 'link' (lien externe)
+  url: 'https://…',          // URL du lecteur, de l'image ou de la page
+  sourcePage: 'https://…',   // page source créditée
+  spotIds: ['la-mine'],      // spots concernés
+  proximity: 'À 1 km du spot',
+  refreshSeconds: 600,       // rechargement automatique (iframe / image)
+  live: false,               // true uniquement si c'est un vrai direct
+}
+```
+
+N'intégrez que des flux publics dont l'intégration est autorisée par la source (lecteur « embed » fourni, ou image publique). Sinon, utilisez `kind: 'link'`.
+
+Webcams intégrées actuellement (lecteurs Viewsurf utilisés par l'office de tourisme de Leucate) : Base de voile de Port Leucate (côté étang), Leucate-Village, Port Leucate, La Franqui, Leucate-Plage. Aucune webcam publique n'a été trouvée pour le **lac de Léon** (lien vers Moliets, la plus proche, sur la côte) ni pour le **lac du Gabas**.
+
+---
+
+## Algorithme de notation
+
+Fichier : `src/lib/scoring.ts`. Note /100 = moyenne pondérée (pondérations réglables dans Admin) :
+
+| Critère | Poids par défaut | Calcul |
+|---|---:|---|
+| Orientation du vent | 30 % | idéale 1 · acceptable 0,6 · défavorable 0,15 · dangereuse 0 |
+| Vitesse du vent | 25 % | 1 dans la plage idéale, décroît vers « trop faible » et « excessif » |
+| Régularité | 15 % | variation de la vitesse et de la direction sur 4 h |
+| Rafales | 15 % | rapport rafale / vent moyen et seuil de rafale max |
+| Évolution | 10 % | qualité des 3 heures suivantes |
+| Accord des modèles | 5 % | écart de vitesse et de direction entre modèles |
+
+**Règles de sécurité (prioritaires sur la note) :**
+- orientation **dangereuse** : recommandation **bloquée** (note ≤ 10), le spot est **toujours classé après** les spots non bloqués, même avec 25 nœuds ;
+- vent > seuil « excessif » : note plafonnée à 35 et avertissement ;
+- rafales > seuil : note plafonnée à 45 et avertissement ;
+- vent trop faible : note plafonnée à 30.
+
+Niveaux : ≥ 78 **excellentes** (vert foncé) · ≥ 60 **bonnes** (vert) · ≥ 40 **moyennes** (orange) · < 40 **défavorables** (rouge).
+
+**Meilleur créneau** : chaque heure des 48 prochaines heures reçoit une note (orientation, vitesse, rafales, régularité locale). Les heures consécutives de jour au-dessus du seuil (60 par défaut) forment des créneaux. Le meilleur créneau maximise la qualité × la durée. Le calcul est refait à chaque actualisation des prévisions (toutes les 15 min).
+
+---
+
+## Déploiement
+
+### GitHub Pages (recommandé, déjà configuré)
+
+1. Poussez le code sur la branche `main` du dépôt.
+2. Sur GitHub : **Settings → Pages → Build and deployment → Source : GitHub Actions**.
+3. Chaque push sur `main` lance `.github/workflows/deploy.yml` (installation, vérification TypeScript, build, publication).
+4. Le site est disponible sur `https://<votre-compte>.github.io/mojito-windsurf-club/`.
+
+Le site utilise des chemins relatifs (`base: './'`) et un routage par `#`. Il fonctionne donc dans un sous-dossier sans configuration supplémentaire.
+
+### Netlify / Vercel
+
+Importez le dépôt : `netlify.toml` et `vercel.json` sont fournis (commande `npm run build`, dossier `dist`).
+
+### Installer l'application sur smartphone (PWA)
+
+- **Android / Chrome** : menu ⋮ → *Installer l'application*.
+- **iPhone / Safari** : bouton Partager → *Sur l'écran d'accueil*.
+
+---
+
+## API et sources utilisées
+
+| Source | Usage | Clé |
+|---|---|---|
+| [Open-Meteo Forecast API](https://open-meteo.com/en/docs) | Conditions actuelles, 7 jours de prévisions, 7 jours d'historique (modèle « best match ») | Non (usage non commercial) |
+| Open-Meteo, paramètre `models` | ECMWF IFS 0.25°, GFS, ICON, ICON-EU, ARPEGE Europe, AROME France HD | Non |
+| `api.open-meteo.com/data/{modèle}/static/meta.json` | Heure du dernier run de chaque modèle | Non |
+| [Viewsurf](https://www.viewsurf.com) (via l'office de tourisme de Leucate) | Webcams intégrées | Non |
+| [Wikimedia Commons](https://commons.wikimedia.org) | Photos des spots (licences CC BY-SA, crédits affichés) | Non |
+| OpenStreetMap / Nominatim, Windfinder, unplug-kitesurf | Vérification des coordonnées GPS (lors de la configuration, pas à l'exécution) | — |
+
+Les données Open-Meteo sont sous licence CC BY 4.0 (attribution dans le pied de page).
+**Open-Meteo Marine** n'est pas utilisé : les 5 spots sont des lacs ou des étangs, où les données de houle en mer ne sont pas pertinentes. Pour l'ajouter (pour un spot en mer, par exemple), créez une fonction dans `services/weather.ts` vers `https://marine-api.open-meteo.com/v1/marine`.
+
+**Appels API** : un seul appel groupé pour les 5 spots (prévisions) et un autre pour les modèles, mis en cache 15 et 30 min dans le navigateur, avec repli sur la dernière donnée connue en cas d'erreur réseau.
+
+---
+
+## Notifications (évolutions)
+
+`src/services/notifications.ts` définit des **règles** (`wind-above`, `good-conditions`, `models-converge`) évaluées à chaque actualisation, avec une notification système si l'utilisateur l'a autorisée (page Alertes).
+
+Pour des notifications envoyées **même site fermé**, il faudra ajouter un petit backend :
+1. une tâche planifiée (GitHub Actions `schedule`, Cloudflare Worker cron…) qui appelle Open-Meteo et réutilise `lib/scoring.ts` ;
+2. un envoi Web Push (clés VAPID) vers les abonnements enregistrés par le service worker (`public/sw.js` gère déjà `notificationclick`).
+
+---
+
+## Limites connues
+
+- Les conditions « actuelles » viennent de modèles météo, pas d'anémomètres sur les spots. Les effets locaux (venturi, dévent, thermiques) peuvent différer.
+- Les modèles globaux (ECMWF, GFS à environ 25 km) lissent les effets locaux ; AROME HD (environ 1,5 km) est le plus fin, mais ne prévoit qu'à environ 2 jours.
+- Les heures affichées dans les lecteurs de webcam sont fournies par la source ; le site n'a pas accès à l'horodatage interne d'un lecteur intégré.
+- Les réglages Admin sont stockés par appareil, sauf s'ils sont publiés via `club-settings.json`.
+
+**Avertissement :** cet outil est une aide à la décision. Vérifiez toujours les conditions réelles, les restrictions locales et les vigilances Météo-France avant de naviguer.
