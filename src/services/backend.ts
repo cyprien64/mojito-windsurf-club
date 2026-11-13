@@ -12,14 +12,15 @@
 
 import type { ClubSettings } from '../types';
 
-const URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, '');
+// On ne garde que « https://xxxx.supabase.co », même si l'URL copiée se termine par /rest/v1/.
+const BASE = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().match(/^https?:\/\/[^/]+/)?.[0];
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
-export const backendEnabled = Boolean(URL && KEY);
+export const backendEnabled = Boolean(BASE && KEY);
 
 async function call<T>(path: string, init: RequestInit = {}, token?: string): Promise<T> {
-  if (!URL || !KEY) throw new Error('Backend non activé');
-  const res = await fetch(`${URL}${path}`, {
+  if (!BASE || !KEY) throw new Error('Backend non activé');
+  const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {
       apikey: KEY,
