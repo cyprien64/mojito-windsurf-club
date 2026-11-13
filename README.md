@@ -151,7 +151,7 @@ Tout se trouve dans **`src/config/spots.ts`**. Chaque spot contient :
 | Leucate – Parc à huîtres | 42.8732, 3.0350 | Windfinder, spot « Parc à huîtres » |
 | Leucate – Éole | 42.8321, 3.0347 | Windfinder, spot « Eole » |
 | Saint-Jean-de-Luz | 43.3887, -1.6627 | Windfinder, spot « Saint-Jean-de-Luz » (Grande Plage) |
-| Lac marin d'Hossegor | 43.6722, -1.4287 | OpenStreetMap / Nominatim, « Lac d'Hossegor » |
+| Étang de La Palme | 42.957, 3.002 | OpenStreetMap / Nominatim, rive ouest près du camping « Le Clapotis » (spot des Vignes) |
 | Étang de Soustons | 43.7703, -1.3277 | OpenStreetMap, centre de l'« Étang de Soustons » |
 | Gruissan – Étang de Mateille | 43.1252, 3.1260 | OpenStreetMap / Nominatim, « Étang de Mateille » |
 | Leucate – La Franqui (mer) | 42.9419, 3.0388 | OpenStreetMap, poste de secours des Coussoules |
@@ -293,7 +293,7 @@ Importez le dépôt : `netlify.toml` et `vercel.json` sont fournis (commande `np
 | Open-Meteo, paramètre `models` | ECMWF IFS 0.25°, GFS, ICON, ICON-EU, ARPEGE Europe, AROME France HD | Non |
 | `api.open-meteo.com/data/{modèle}/static/meta.json` | Heure du dernier run de chaque modèle | Non |
 | [Pioupiou / OpenWindMap](https://developers.pioupiou.fr/api/live/) | Vent **mesuré** par les balises proches (Gabas, Leucate, Saint-Jean-de-Luz, Gruissan) | Non |
-| Open-Meteo Marine, `sea_level_height_msl` | Marées (Saint-Jean-de-Luz, Hossegor), heures approximatives, sans coefficient | Non |
+| Open-Meteo Marine, `sea_level_height_msl` | Marées (Saint-Jean-de-Luz), heures approximatives, sans coefficient | Non |
 | [OpenStreetMap](https://www.openstreetmap.org) + Leaflet | Carte des spots | Non |
 | [OSRM](https://project-osrm.org) (serveur de démonstration) + Nominatim | Estimation du temps et de la distance de route (à la demande de l'utilisateur) | Non |
 | Waze (liens `waze.com/ul` et carte `embed.waze.com`) | Guidage et trafic en temps réel. Waze ne propose pas d'API publique de calcul d'itinéraire pour un site web : le temps réel s'affiche dans l'appli Waze | Non |

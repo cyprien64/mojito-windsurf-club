@@ -179,7 +179,7 @@ export const NO_WEBCAM_NOTE: Record<string, string> = {
   ganguise: 'Aucune webcam publique filmant le lac de la Ganguise n’a été trouvée.',
   'la-nautique': 'Aucune webcam publique filmant La Nautique n’a été trouvée.',
   lourdes: 'Aucune webcam publique filmant le lac de Lourdes n’a été trouvée.',
-  hossegor: 'Aucune webcam publique filmant le lac d’Hossegor n’a été trouvée.',
+  'la-palme': 'Aucune webcam publique filmant l’étang de La Palme n’a été trouvée : les webcams de Leucate et La Franqui donnent une idée du vent.',
   soustons: 'Aucune webcam publique filmant l’étang de Soustons n’a été trouvée.',
   gruissan: 'Aucune webcam publique filmant l’étang de Mateille n’a été trouvée. Utilisez la balise Pioupiou du spot pour le vent réel.',
 };
