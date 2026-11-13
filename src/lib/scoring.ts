@@ -26,7 +26,7 @@ export const LEVEL_META: Record<Level, { label: string; short: string; color: st
   good: { label: 'Bonnes conditions', short: 'Bon', color: '#3DBE6A', text: 'text-white', bg: 'bg-rate-good' },
   average: { label: 'Conditions moyennes', short: 'Moyen', color: '#F2994A', text: 'text-white', bg: 'bg-rate-mid' },
   poor: { label: 'Conditions défavorables', short: 'Défavorable', color: '#E5484D', text: 'text-white', bg: 'bg-rate-bad' },
-  blocked: { label: 'Déconseillé — orientation dangereuse', short: 'Bloqué', color: '#9B1C1F', text: 'text-white', bg: 'bg-[#9B1C1F]' },
+  blocked: { label: 'Déconseillé — danger (orientation ou orage)', short: 'Bloqué', color: '#9B1C1F', text: 'text-white', bg: 'bg-[#9B1C1F]' },
 };
 
 export const SECTOR_RATING_META: Record<SectorRating, { label: string; color: string; score: number }> = {
@@ -185,7 +185,12 @@ export interface HourEval {
   score: number; // 0-100
   daylight: boolean;
   blocked: boolean;
+  /** Orage prévu à cette heure (codes météo 95, 96, 99). */
+  storm?: boolean;
 }
+
+/** Codes WMO d'orage (avec ou sans grêle). */
+export const isStormCode = (c: number | null | undefined) => c != null && c >= 95;
 
 function isDaylight(time: string, w: SpotWeather): boolean {
   const day = time.slice(0, 10);
@@ -229,9 +234,10 @@ export function evaluateHours(w: SpotWeather, cfg: SpotWindConfig, weights: Scor
     if (sp < cfg.speed.minRideable) score = Math.min(score, 30);
     if (sp > cfg.speed.maxRideable) score = Math.min(score, 25);
     if (gu != null && gu > cfg.gusts.maxGust) score = Math.min(score, 40);
-    const blocked = rating === 'danger';
+    const storm = isStormCode(w.hourly.weatherCode[i]);
+    const blocked = rating === 'danger' || storm;
     if (blocked) score = 0;
-    return { time: t, index: i, speed: sp, gust: gu, dir: di, rating, score, daylight, blocked };
+    return { time: t, index: i, speed: sp, gust: gu, dir: di, rating, score, daylight, blocked, storm };
   });
 }
 
@@ -436,10 +442,25 @@ export function evaluateSpot(
   let score = rawScore;
 
   // ---- Règles de sécurité (priment sur la note) ----
-  const blocked = rating === 'danger';
-  if (blocked) {
+  // Orage : maintenant ou dans les 2 prochaines heures → navigation bloquée.
+  const stormNow = [now, now + 1, now + 2].some((i) => isStormCode(i === now ? (w.current.weatherCode ?? w.hourly.weatherCode[i]) : w.hourly.weatherCode[i]));
+  let stormAt: string | null = null;
+  for (let i = now; i < Math.min(hours.length, now + 24); i++) {
+    if (hours[i].storm) {
+      stormAt = hours[i].time;
+      break;
+    }
+  }
+  const blocked = rating === 'danger' || stormNow;
+  if (rating === 'danger') {
     score = Math.min(score, 10);
     warnings.push(`Orientation ${cardinalLong(dir)} classée dangereuse par les admins : recommandation bloquée.`);
+  }
+  if (stormNow) {
+    score = Math.min(score, 10);
+    warnings.push('⚡ Orage prévu maintenant ou dans les 2 heures : ne naviguez pas, la foudre frappe en priorité ce qui dépasse sur l’eau.');
+  } else if (stormAt) {
+    warnings.push(`⚡ Orage prévu vers ${stormAt.slice(11, 13)} h : les heures orageuses sont exclues des créneaux. Surveillez le ciel et rentrez au premier coup de tonnerre.`);
   }
   if (speed > cfg.speed.maxRideable) {
     score = Math.min(score, 35);
@@ -511,7 +532,9 @@ export function evaluateSpot(
   // ---- Phrase de synthèse ----
   let summary: string;
   const dirTxt = `vent de secteur ${cardinalLong(dir)}`;
-  if (blocked) {
+  if (stormNow) {
+    summary = `Navigation déconseillée : orage prévu sur le spot (${Math.round(speed)} nœuds, ${dirTxt}).`;
+  } else if (blocked) {
     summary = `Navigation déconseillée : ${dirTxt}, orientation classée dangereuse pour ce spot, malgré ${Math.round(speed)} nœuds.`;
   } else if (level === 'excellent' || level === 'good') {
     summary = `Spot recommandé : ${dirTxt}, ${rating ? ORIENTATION_TEXT[rating].replace(' pour ce spot', '') : 'orientation inconnue'}, ${Math.round(speed)} nœuds ${

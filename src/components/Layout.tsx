@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { Bell, CalendarDays, Camera, Compass, Gauge, History, Layers, LineChart, Map as MapIcon, MapPin, Sailboat, Scale, Settings, Trophy, Users, Medal, Car } from 'lucide-react';
+import { Bell, CalendarDays, Camera, Compass, Gauge, History, Layers, LineChart, Map as MapIcon, MapPin, Sailboat, Scale, Settings, Trophy, Users, Medal, Car, Hand, CalendarHeart, TrendingUp, Sun } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { InstallPrompt } from './InstallPrompt';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
@@ -21,10 +21,14 @@ export function useMainNav() {
 
 const SECONDARY = [
   { to: '/ou-naviguer', label: 'Où naviguer ?', icon: Trophy },
+  { to: '/qui-y-va', label: 'Qui y va ?', icon: Hand },
+  { to: '/agenda', label: 'Agenda', icon: CalendarHeart },
   { to: '/weekend', label: 'Week-end', icon: CalendarDays },
+  { to: '/tendance', label: 'Tendance 15 j', icon: TrendingUp },
   { to: '/sessions', label: 'Sur l’eau', icon: Users },
   { to: '/classement', label: 'Classement', icon: Medal },
   { to: '/trajets', label: 'Trajets', icon: Car },
+  { to: '/plage', label: 'Mode plage', icon: Sun },
   { to: '/carte', label: 'Carte', icon: MapIcon },
   { to: '/materiel', label: 'Matériel', icon: Sailboat },
   { to: '/comparer', label: 'Comparer', icon: Scale },

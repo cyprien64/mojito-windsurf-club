@@ -1,9 +1,54 @@
-import { useState } from 'react';
+import { lazy, Suspense, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Users, Waves } from 'lucide-react';
+import { FileUp, Route as RouteIcon, Star, Users, Waves } from 'lucide-react';
 import { SPOTS, SPOT_BY_ID } from '../config/spots';
 import { useApp } from '../context/AppContext';
-import { addReport, backendEnabled, deleteReport, loadAdminSession, type Feel, type SessionReport } from '../services/backend';
+import { addReport, backendEnabled, deleteReport, getTrack, loadAdminSession, type Feel, type SessionReport } from '../services/backend';
+import { distKm, parseGpx, summarizeGpx, type GpxSummary } from '../lib/gpx';
+
+const TrackMap = lazy(() => import('../components/TrackMap'));
+
+/** Heure locale de Paris « AAAA-MM-JJTHH:00 » (format des séries Open-Meteo). */
+function parisHour(d: Date): string {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' })
+      .formatToParts(d)
+      .map((x) => [x.type, x.value]),
+  );
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:00`;
+}
+
+/** Tracé d'une session publiée, chargé à la demande. */
+function TrackToggle({ id }: { id: number }) {
+  const [track, setTrack] = useState<[number, number][] | null>(null);
+  const [state, setState] = useState<'idle' | 'loading' | 'open' | 'error'>('idle');
+  return (
+    <div className="mt-1">
+      <button
+        className="inline-flex items-center gap-1 text-xs font-bold text-mint-700"
+        onClick={async () => {
+          if (state === 'open') return setState('idle');
+          setState('loading');
+          try {
+            const t = track ?? (await getTrack(id));
+            setTrack(t);
+            setState(t && t.length > 1 ? 'open' : 'error');
+          } catch {
+            setState('error');
+          }
+        }}
+      >
+        <RouteIcon className="h-3.5 w-3.5" /> {state === 'open' ? 'Masquer le tracé' : state === 'loading' ? 'Chargement…' : 'Voir le tracé GPS'}
+      </button>
+      {state === 'error' && <span className="ml-2 text-xs text-rate-bad">Tracé indisponible.</span>}
+      {state === 'open' && track && (
+        <Suspense fallback={<div className="skeleton mt-2 h-56" />}>
+          <TrackMap track={track} className="mt-2 h-56" />
+        </Suspense>
+      )}
+    </div>
+  );
+}
 import { clubStats } from '../lib/clubStats';
 import { timeAgo } from '../lib/format';
 
@@ -27,7 +72,10 @@ function NotEnabled() {
 }
 
 export function Sessions() {
-  const { reports, reportsError, reloadReports, evaluations, spotId, rider } = useApp();
+  const { reports, reportsError, reloadReports, evaluations, spotId, rider, weather } = useApp();
+  const [gpx, setGpx] = useState<GpxSummary | null>(null);
+  const [gpxMsg, setGpxMsg] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<SessionReport>({
     spot_id: spotId,
     author: (() => {
@@ -58,6 +106,47 @@ export function Sessions() {
   const admin = loadAdminSession();
   const set = (p: Partial<SessionReport>) => setForm((f) => ({ ...f, ...p }));
 
+  const importGpx = async (file: File) => {
+    setGpxMsg(null);
+    try {
+      if (file.size > 15 * 1024 * 1024) throw new Error('fichier trop gros (15 Mo max).');
+      const sum = summarizeGpx(parseGpx(await file.text()));
+      setGpx(sum);
+      // Spot le plus proche du départ (moins de 15 km)
+      let near: { id: string; d: number } | null = null;
+      if (sum.first) for (const sp of SPOTS) {
+        const d = distKm(sum.first, sp);
+        if (!near || d < near.d) near = { id: sp.id, d };
+      }
+      if (sum.durationMin != null) {
+        setHours(String(Math.floor(sum.durationMin / 60)));
+        setMinutes(String(sum.durationMin % 60));
+      }
+      set({
+        distance_km: sum.distanceKm > 0 ? Math.min(250, sum.distanceKm) : null,
+        max_speed_kn: sum.maxSpeedKn,
+        track: sum.track,
+        on_water: false,
+        ...(near && near.d < 15 ? { spot_id: near.id } : {}),
+      });
+      setGpxMsg(`Tracé importé${near && near.d < 15 ? ` · spot détecté : ${SPOT_BY_ID[near.id].shortName}` : ''}. Vérifiez puis publiez.`);
+    } catch (e) {
+      setGpx(null);
+      setGpxMsg(`Import impossible : ${(e as Error).message}`);
+    }
+  };
+
+  /** Vent du modèle à l'heure de la session GPX (historique 7 j), sinon vent actuel. */
+  const windFor = (spot: string): number | null => {
+    const w = weather.data?.[spot];
+    if (gpx?.start && w) {
+      const i = w.hourly.time.indexOf(parisHour(gpx.start));
+      if (i >= 0 && w.hourly.windSpeed[i] != null) return Math.round(w.hourly.windSpeed[i] as number);
+    }
+    const ev = evaluations[spot];
+    return ev?.speed != null ? Math.round(ev.speed) : null;
+  };
+
   const submit = async () => {
     if (!form.author.trim()) {
       setMsg('Indiquez votre prénom.');
@@ -66,7 +155,6 @@ export function Sessions() {
     setSending(true);
     setMsg(null);
     try {
-      const ev = evaluations[form.spot_id];
       const dur = (Number(hours) || 0) * 60 + (Number(minutes) || 0);
       if (form.distance_km != null && (form.distance_km <= 0 || form.distance_km > 250)) throw new Error('distance invalide (0 à 250 km).');
       if (dur > 720) throw new Error('durée invalide (12 h maximum).');
@@ -78,8 +166,14 @@ export function Sessions() {
         sail_brand: form.sail_brand.trim().slice(0, 60),
         board_brand: form.board_brand.trim().slice(0, 60),
         duration_min: dur > 0 ? dur : null,
-        wind_kn: ev?.speed != null ? Math.round(ev.speed) : null,
+        wind_kn: windFor(form.spot_id),
+        track: gpx ? form.track ?? null : null,
+        // Session importée : datée du début du tracé (pour le classement), jamais dans le futur
+        ...(gpx?.start && gpx.start.getTime() < Date.now() ? { created_at: gpx.start.toISOString() } : {}),
       });
+      setGpx(null);
+      setGpxMsg(null);
+      if (fileRef.current) fileRef.current.value = '';
       setHours('');
       setMinutes('');
       try {
@@ -88,7 +182,7 @@ export function Sessions() {
         /* ignore */
       }
       setMsg('Merci ! Votre retour est publié.');
-      set({ comment: '', distance_km: null, max_speed_kn: null });
+      set({ comment: '', distance_km: null, max_speed_kn: null, track: null });
       reloadReports();
     } catch (e) {
       setMsg(`Envoi impossible : ${(e as Error).message}`);
@@ -136,6 +230,53 @@ export function Sessions() {
 
           <section className="card card-pad">
             <h2 className="mb-3 font-display text-lg font-extrabold">J’y suis / j’y étais</h2>
+            <div className="mb-4 rounded-xl border border-dashed border-mint-300 bg-mint-50/50 p-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="btn-ghost cursor-pointer !py-2">
+                  <FileUp className="h-4 w-4" /> Importer un fichier GPX
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept=".gpx,application/gpx+xml,application/xml,text/xml"
+                    className="sr-only"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) importGpx(f);
+                    }}
+                  />
+                </label>
+                <p className="flex-1 text-xs text-ink-700">
+                  Montre ou appli GPS (Garmin, Coros, Suunto, Strava, Waterspeed…) : exportez la session en .gpx. Distance, durée, vitesse max et tracé sont remplis
+                  automatiquement. Le fichier est lu sur votre téléphone ; seul un tracé simplifié est publié.
+                </p>
+              </div>
+              {gpxMsg && <p className="mt-2 text-sm font-bold text-mint-700">{gpxMsg}</p>}
+              {gpx && (
+                <div className="mt-2 space-y-2">
+                  <p className="text-xs text-ink-700">
+                    {gpx.start && `${gpx.start.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} · `}
+                    {gpx.distanceKm} km
+                    {gpx.durationMin != null && ` · ${Math.floor(gpx.durationMin / 60)} h ${String(gpx.durationMin % 60).padStart(2, '0')}`}
+                    {gpx.avgSpeedKn != null && ` · moyenne ${gpx.avgSpeedKn} nds`}
+                    {gpx.maxSpeedKn != null && ` · pointe ${gpx.maxSpeedKn} nds (10 s)`} · {gpx.points} points
+                  </p>
+                  <Suspense fallback={<div className="skeleton h-56" />}>
+                    <TrackMap track={gpx.track} className="h-56" />
+                  </Suspense>
+                  <button
+                    className="text-xs font-bold text-rate-bad"
+                    onClick={() => {
+                      setGpx(null);
+                      setGpxMsg(null);
+                      set({ track: null });
+                      if (fileRef.current) fileRef.current.value = '';
+                    }}
+                  >
+                    Retirer le tracé
+                  </button>
+                </div>
+              )}
+            </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <label className="block">
                 <span className="label">Prénom</span>
@@ -339,6 +480,7 @@ export function Sessions() {
                     </p>
                   )}
                   {r.comment && <p className="mt-0.5 text-ink-800">{r.comment}</p>}
+                  {r.has_track && r.id != null && <TrackToggle id={r.id} />}
                 </li>
               ))}
             </ul>

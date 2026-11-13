@@ -308,3 +308,81 @@ export async function fetchTides(point: { lat: number; lon: number }, force = fa
     force,
   );
 }
+
+export interface GrauSeries {
+  time: string[];
+  level: (number | null)[];
+  currentKmh: (number | null)[];
+}
+
+/** Niveau de la mer et courant au large d'un grau (Open-Meteo Marine), cache 1 h. */
+export async function fetchGrau(point: { lat: number; lon: number }, force = false): Promise<Fetched<GrauSeries>> {
+  return cached(
+    `grau:v1:${point.lat},${point.lon}`,
+    60 * 60 * 1000,
+    async () => {
+      const params = new URLSearchParams({
+        latitude: String(point.lat),
+        longitude: String(point.lon),
+        hourly: 'sea_level_height_msl,ocean_current_velocity',
+        timezone: TIMEZONE,
+        past_days: '1',
+        forecast_days: '2',
+      });
+      const body = await getJson(`https://marine-api.open-meteo.com/v1/marine?${params}`);
+      const time: string[] = body.hourly?.time ?? [];
+      return { time, level: arr(body.hourly?.sea_level_height_msl, time.length), currentKmh: arr(body.hourly?.ocean_current_velocity, time.length) };
+    },
+    force,
+  );
+}
+
+// ---------------------------------------------------------------------
+//  TENDANCE 15 JOURS — prévision d'ensemble ECMWF (51 scénarios)
+// ---------------------------------------------------------------------
+
+export interface EnsembleRaw {
+  time: string[];
+  /** members[m] = vitesses horaires (nds) du scénario m */
+  speed: (number | null)[][];
+  dir: (number | null)[][];
+  gust: (number | null)[][];
+}
+
+/** 51 scénarios horaires sur 15 jours (cache 3 h ; seules les heures de 9 h à 19 h sont gardées). */
+export async function fetchEnsemble(spot: SpotDefinition, force = false): Promise<Fetched<EnsembleRaw>> {
+  return cached(
+    `ensemble:v1:${spot.id}`,
+    3 * 60 * 60 * 1000,
+    async () => {
+      const params = new URLSearchParams({
+        latitude: String(spot.lat),
+        longitude: String(spot.lon),
+        hourly: 'wind_speed_10m,wind_direction_10m,wind_gusts_10m',
+        models: 'ecmwf_ifs025',
+        forecast_days: '15',
+        wind_speed_unit: 'kn',
+        timezone: TIMEZONE,
+      });
+      const body = await getJson(`https://ensemble-api.open-meteo.com/v1/ensemble?${params}`);
+      const h = body.hourly ?? {};
+      const all: string[] = h.time ?? [];
+      // On ne garde que la journée navigable (9 h – 19 h) pour alléger le cache
+      const keep = all.map((t, i) => [t, i] as const).filter(([t]) => {
+        const hr = Number(t.slice(11, 13));
+        return hr >= 9 && hr <= 19;
+      });
+      const pick = (key: string) => {
+        const out: (number | null)[][] = [];
+        for (let m = 0; m <= 50; m++) {
+          const k = m === 0 ? key : `${key}_member${String(m).padStart(2, '0')}`;
+          const series = h[k] as (number | null)[] | undefined;
+          if (series) out.push(keep.map(([, i]) => series[i] ?? null));
+        }
+        return out;
+      };
+      return { time: keep.map(([t]) => t), speed: pick('wind_speed_10m'), dir: pick('wind_direction_10m'), gust: pick('wind_gusts_10m') };
+    },
+    force,
+  );
+}

@@ -98,6 +98,8 @@ export interface SpotDefinition {
   tides?: boolean;
   /** Point en mer pour les données de houle (Open-Meteo Marine), uniquement pour les spots en mer. */
   marine?: { lat: number; lon: number; label: string };
+  /** Grau (passe entre l'étang et la mer) : courant indicatif d'après le niveau de la mer. */
+  grau?: { name: string; lat: number; lon: number };
   /** Paramètres par défaut (avant personnalisation par les admins). */
   defaults: SpotWindConfig;
 }

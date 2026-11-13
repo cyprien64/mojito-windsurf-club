@@ -16,6 +16,10 @@ import { Weekend } from './pages/Weekend';
 import { Sessions } from './pages/Sessions';
 import { Leaderboard } from './pages/Leaderboard';
 import { RoutesPage } from './pages/Routes';
+import { WhoGoes } from './pages/WhoGoes';
+import { Agenda } from './pages/Agenda';
+import { Trend } from './pages/Trend';
+import { BeachMode } from './pages/BeachMode';
 import { lazy, Suspense } from 'react';
 
 // La carte (Leaflet) n'est chargée que si on l'ouvre.
@@ -26,6 +30,7 @@ export default function App() {
     <AppProvider>
       <HashRouter>
         <Routes>
+          <Route path="plage/:spotId?" element={<BeachMode />} />
           <Route element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="ou-naviguer" element={<WhereToSail />} />
@@ -40,6 +45,9 @@ export default function App() {
             <Route path="sessions" element={<Sessions />} />
             <Route path="classement" element={<Leaderboard />} />
             <Route path="trajets" element={<RoutesPage />} />
+            <Route path="qui-y-va" element={<WhoGoes />} />
+            <Route path="agenda" element={<Agenda />} />
+            <Route path="tendance/:spotId?" element={<Trend />} />
             <Route
               path="carte"
               element={

@@ -24,6 +24,8 @@ import { TideCard } from '../components/TideCard';
 import { ShareButton } from '../components/Share';
 import { isOnWater } from './Sessions';
 import { RouteCard } from '../components/Route';
+import { SpotTripsCard } from './WhoGoes';
+import { GrauCard } from '../components/GrauCard';
 
 const STRENGTH_COLOR: Record<string, string> = { faible: '#7BDCAE', modéré: '#3DBE6A', fort: '#F2994A', 'très fort': '#E5484D' };
 
@@ -73,7 +75,12 @@ export function Conditions() {
           </p>
         </div>
         <div className="flex flex-col items-start gap-2 sm:items-end">
-          <ShareButton ev={ev} />
+          <div className="flex flex-wrap gap-2">
+            <Link to={`/plage/${spot.id}`} className="btn !py-2 bg-[#050806] text-[#3FE06A] shadow-card hover:bg-black">
+              🏖 Mode plage
+            </Link>
+            <ShareButton ev={ev} />
+          </div>
           <DataStamp fetchedAt={weather.fetchedAt} modelTime={c.time} stale={weather.stale} loading={weather.loading} onRefresh={refresh} />
         </div>
       </section>
@@ -204,6 +211,8 @@ export function Conditions() {
         </section>
       )}
 
+      <SpotTripsCard spotId={spot.id} />
+
       <RouteCard spot={spot} />
 
       {spotStations.length > 0 && (
@@ -213,6 +222,8 @@ export function Conditions() {
       {spot.tides && <TideCard spot={spot} nowIso={c.time} windowStart={ev.bestWindow?.start} windowEnd={ev.bestWindow?.end} />}
 
       {spot.marine && <MarineCard spotId={spot.id} />}
+
+      {spot.grau && <GrauCard spot={spot} nowIso={c.time} />}
 
       {/* 12 prochaines heures */}
       <section className="card card-pad">

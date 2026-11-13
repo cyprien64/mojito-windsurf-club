@@ -117,6 +117,7 @@ export const SPOTS: SpotDefinition[] = [
       foil: 'déconseillé',
       foilNote: 'Plan d’eau peu profond avec beaucoup d’algues : le foil risque de toucher le fond et de s’engluer.',
     },
+    grau: { name: 'grau de Leucate (Port-Leucate)', lat: 42.865, lon: 3.06 },
     defaults: {
       // Tramontane (NO à N) = vent dominant ; marin (SE) praticable.
       sectors: sectors({
@@ -158,6 +159,7 @@ export const SPOTS: SpotDefinition[] = [
       foil: 'déconseillé',
       foilNote: 'Très faible profondeur, algues et tables ostréicoles : foil fortement déconseillé.',
     },
+    grau: { name: 'grau de Leucate (Port-Leucate)', lat: 42.865, lon: 3.06 },
     defaults: {
       sectors: sectors({
         ideal: ['NO', 'ONO', 'NNO', 'O'],
@@ -197,6 +199,7 @@ export const SPOTS: SpotDefinition[] = [
       foil: 'prudence',
       foilNote: 'Étang peu profond : mât court et repérage des zones profondes indispensables pour foiler.',
     },
+    grau: { name: 'grau de Leucate (Port-Leucate)', lat: 42.865, lon: 3.06 },
     defaults: {
       sectors: sectors({
         ideal: ['N', 'NNO', 'NO', 'ONO'],
@@ -492,6 +495,7 @@ export const SPOTS: SpotDefinition[] = [
       foil: 'prudence',
       foilNote: 'Étang peu profond : mât court, restez dans la partie sud, plus profonde.',
     },
+    grau: { name: 'grau de La Palme (ouvert selon la saison)', lat: 42.955, lon: 3.06 },
     defaults: {
       sectors: sectors({
         ideal: ['NO', 'ONO', 'NNO', 'O'],

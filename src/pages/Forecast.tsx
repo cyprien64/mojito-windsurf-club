@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Area,
   Bar,
@@ -172,6 +172,9 @@ export function Forecast() {
         <div>
           <h1 className="font-display text-3xl font-extrabold tracking-tight">Prévisions · {spot.shortName}</h1>
           <DataStamp fetchedAt={weather.fetchedAt} stale={weather.stale} loading={weather.loading} onRefresh={refresh} />
+          <Link to={`/tendance/${spot.id}`} className="mt-1 inline-block text-sm font-bold text-mint-700 hover:underline">
+            📈 Tendance sur 15 jours avec indice de confiance →
+          </Link>
         </div>
         <div className="flex rounded-full border border-mint-200 bg-cream-50 p-1" role="tablist">
           {(['hourly', 'daily'] as Mode[]).map((m) => (

@@ -38,6 +38,14 @@ React · TypeScript · Vite · Tailwind CSS · Recharts · Lucide · Open-Meteo.
 | **Week-end** | Meilleur spot et meilleur créneau du samedi et du dimanche |
 | **Sur l'eau** | « J'y suis / j'y étais » : qui navigue en ce moment, retours de session, tailles de voile et d'aile réellement utilisées par le club *(nécessite Supabase)* |
 | **Classement** | Classement général (distance, temps sur l'eau, sessions, vitesse moyenne, vitesse max) sur 7 jours, 30 jours, la saison ou tout, filtrable par spot, et **micro-compétitions** créées par les admins (période, spot, discipline, critère) avec podium *(nécessite Supabase)* |
+| **Qui y va ?** | Chaque membre annonce sa sortie (spot, jour, horaires, discipline) avec la note de prévision du créneau ; covoiturage (places proposées / cherchées, ville de départ). Annulation par le téléphone qui a publié ou par un admin *(nécessite Supabase)* |
+| **Agenda** | Événements du club (sortie, compétition, formation, soirée) créés par les admins, inscriptions des membres, export vers l'agenda du téléphone (.ics). Premier événement : « Les Mojito débarquent à Leucate !!! » du 17 au 24 octobre 2027 *(nécessite Supabase)* |
+| **Import GPX** | Dans « Sur l'eau » : un fichier .gpx de montre ou d'appli remplit distance, durée, vitesse max (lissée sur 10 s) et détecte le spot ; un tracé simplifié (400 points) est publié et visible sur une carte |
+| **Tendance 15 jours** | Prévision d'ensemble ECMWF (51 scénarios) : vent probable de la meilleure fenêtre de 3 h, fourchette, probabilité de pouvoir naviguer selon les réglages du spot, indice de confiance |
+| **Réglage par le club** | Dans Admin, pour chaque spot : seuils de vitesse proposés d'après le ressenti des retours de session (à partir de 6 retours), à appliquer en un clic |
+| **Orages** | Code météo d'orage (95, 96, 99) : heures exclues des créneaux ; orage maintenant ou dans les 2 h = navigation déconseillée |
+| **Courant au grau** | Étangs de Leucate et de La Palme : courant entrant / sortant indicatif, déduit du niveau de la mer (Open-Meteo Marine) |
+| **Mode plage** | Écran plein, chiffres géants, fort contraste (sombre ou clair), balise en direct si disponible, écran maintenu allumé |
 | **Trajets** | Bouton **« Y aller avec Waze »** (guidage et temps réel avec trafic dans l'appli Waze) et carte trafic Waze en direct sur chaque spot. Le site affiche aussi une estimation sans trafic (OSRM / OpenStreetMap) pour comparer les spots depuis votre position ; la position reste sur l'appareil |
 | **Carte** | Carte OpenStreetMap des spots (couleur = navigabilité) et des balises de vent |
 | **Comparer** | Plusieurs spots côte à côte (tableau et graphique 48 h) |

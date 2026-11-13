@@ -10,6 +10,7 @@ import { SECTOR_CODES, SECTOR_NAMES, sectorRange } from '../lib/wind';
 import { exportSettings, normalizeSettings } from '../services/settings';
 import { backendEnabled, loadAdminSession, logoutAdmin, publishSettings, sendLoginCode, verifyLoginCode, type AdminSession } from '../services/backend';
 import type { ClubSettings, ScoringWeights, SectorRating, SpotWindConfig } from '../types';
+import { calibrate, MIN_REPORTS } from '../lib/calibration';
 
 function NumberField({ label, value, onChange, unit, step = 1 }: { label: string; value: number; onChange: (v: number) => void; unit?: string; step?: number }) {
   return (
@@ -34,7 +35,7 @@ function validate(cfg: SpotWindConfig): string[] {
 }
 
 export function Admin() {
-  const { settings, settingsSource, clubSettings, remoteSettings, reloadRemoteSettings, saveSettings, resetSettings, stations } = useApp();
+  const { settings, settingsSource, clubSettings, remoteSettings, reloadRemoteSettings, saveSettings, resetSettings, stations, reports } = useApp();
   const [draft, setDraft] = useState<ClubSettings>(() => structuredClone(settings));
   const [spotId, setSpotId] = useState(SPOTS[0].id);
   const [brush, setBrush] = useState<SectorRating>('ideal');
@@ -241,6 +242,51 @@ export function Admin() {
               </div>
               <p className="mt-1 text-[11px] text-ink-700">Rouge : trop faible · orange : léger · vert foncé : idéal · vert : fort · bordeaux : excessif</p>
             </div>
+
+            {(() => {
+              const cal = calibrate(reports, spotId, cfg);
+              return (
+                <div className="rounded-xl border border-mint-200 bg-mint-50/50 p-3">
+                  <p className="font-display text-sm font-extrabold">👥 Ce que disent les retours du club</p>
+                  {cal.count < MIN_REPORTS ? (
+                    <p className="mt-1 text-xs text-ink-700">
+                      {cal.count} retour{cal.count > 1 ? 's' : ''} avec vent prévu sur ce spot (12 derniers mois) : il en faut au moins {MIN_REPORTS} pour proposer des
+                      réglages.
+                    </p>
+                  ) : (
+                    <>
+                      <p className="mt-1 text-xs text-ink-700">
+                        {cal.count} retours : {(['trop faible', 'bon', 'fort', 'trop fort'] as const)
+                          .filter((f) => cal.byFeel[f].length)
+                          .map((f) => `« ${f} » ${cal.byFeel[f].length}× (vers ${Math.round(cal.byFeel[f].reduce((a, b) => a + b, 0) / cal.byFeel[f].length)} nds)`)
+                          .join(' · ')}
+                      </p>
+                      {cal.suggestions.length ? (
+                        <ul className="mt-2 space-y-2">
+                          {cal.suggestions.map((sg) => (
+                            <li key={sg.field} className="flex flex-wrap items-center gap-2 text-sm">
+                              <span>
+                                <strong>{sg.label}</strong> : {sg.current} → <strong className="text-mint-700">{sg.suggested} nds</strong>
+                              </span>
+                              <button className="btn-ghost !px-2.5 !py-1 text-xs" onClick={() => setCfg({ speed: { ...cfg.speed, [sg.field]: sg.suggested } })}>
+                                Appliquer
+                              </button>
+                              <span className="w-full text-xs text-ink-700">{sg.why}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="mt-1 text-xs font-bold text-mint-700">Les seuils actuels correspondent bien au ressenti du club.</p>
+                      )}
+                      <p className="mt-2 text-[11px] text-ink-700/70">
+                        Basé sur le vent prévu par le modèle au moment de chaque retour et le ressenti déclaré. « Appliquer » modifie le brouillon : vérifiez puis
+                        enregistrez ou publiez.
+                      </p>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
 
             <div>
               <p className="label mb-2">3. Rafales</p>
