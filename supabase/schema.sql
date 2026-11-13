@@ -1,6 +1,7 @@
 -- =====================================================================
 --  Mojito Windsurf Club — schéma Supabase (fonctions communautaires)
---  À exécuter une fois dans Supabase : SQL Editor → New query → Run.
+--  À exécuter dans Supabase : SQL Editor → New query → Run.
+--  Le script peut être relancé sans erreur (il remplace les règles existantes).
 -- =====================================================================
 
 -- Retours de session des membres
@@ -22,8 +23,11 @@ create table if not exists public.session_reports (
 alter table public.session_reports enable row level security;
 
 -- Tout le monde peut lire et publier un retour ; seuls les admins connectés suppriment.
+drop policy if exists "lecture publique" on public.session_reports;
 create policy "lecture publique" on public.session_reports for select using (true);
+drop policy if exists "publication publique" on public.session_reports;
 create policy "publication publique" on public.session_reports for insert with check (true);
+drop policy if exists "suppression admin" on public.session_reports;
 create policy "suppression admin" on public.session_reports for delete to authenticated using (true);
 
 -- Réglages partagés du club (une seule ligne, id = 1)
@@ -36,8 +40,11 @@ create table if not exists public.club_settings (
 
 alter table public.club_settings enable row level security;
 
+drop policy if exists "lecture publique des réglages" on public.club_settings;
 create policy "lecture publique des réglages" on public.club_settings for select using (true);
+drop policy if exists "écriture admin" on public.club_settings;
 create policy "écriture admin" on public.club_settings for insert to authenticated with check (true);
+drop policy if exists "mise à jour admin" on public.club_settings;
 create policy "mise à jour admin" on public.club_settings for update to authenticated using (true) with check (true);
 
 -- Les admins sont les seuls utilisateurs « authenticated » : invitez-les dans
