@@ -29,17 +29,9 @@ export function Home() {
       {/* Hero : logo du club sur fond noir, comme l'original */}
       <section className="relative overflow-hidden rounded-3xl bg-[#050806] px-5 pb-16 pt-5 text-white shadow-lift sm:px-8 sm:pt-6">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(600px_300px_at_70%_40%,rgba(34,210,74,0.18),transparent_70%)]" />
-        <div className="relative flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
-          <ClubLogo className="w-full max-w-[460px] sm:order-2 sm:w-[52%]" />
-          <div className="text-center sm:flex-1 sm:text-left">
-            <p className="text-[11px] font-bold uppercase tracking-[.2em] text-[#3FE06A]">Windsurf & wing · Béarn · Landes · Pays basque · Leucate</p>
-            <h1 className="mt-2 font-brand text-2xl leading-tight text-white sm:text-4xl">
-              Find your <span className="text-[#3FE06A]">wind</span>.
-              <br />
-              Find your <span className="text-[#3FE06A]">spot</span>.
-            </h1>
-            <p className="mt-2 font-display text-base italic text-white/70">Team 100 % Pyrénées</p>
-          </div>
+        <h1 className="sr-only">Mojito Windsurf Club</h1>
+        <div className="relative flex justify-center">
+          <ClubLogo className="w-full max-w-[520px]" />
         </div>
         <Waves className="absolute inset-x-0 bottom-0 h-14 w-full text-cream-100" />
       </section>
