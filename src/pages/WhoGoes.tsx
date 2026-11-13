@@ -23,73 +23,180 @@ export function useDayScore() {
   };
 }
 
-/** Liste compacte des sorties (réutilisée sur la page d'un spot). */
+/** Marqueur d'un passager dans le commentaire : « 🚗 avec Paul ». */
+const PASSENGER = '🚗 avec ';
+const passengerOf = (t: Trip) => (t.comment.startsWith(PASSENGER) ? t.comment.slice(PASSENGER.length).trim() : null);
+
+/** Demande le prénom une seule fois (mémorisé ensuite sur le téléphone). */
+function askName(): string | null {
+  const saved = savedAuthor();
+  if (saved) return saved;
+  const n = window.prompt('Votre prénom (il sera mémorisé sur ce téléphone) :')?.trim();
+  if (!n) return null;
+  saveAuthor(n);
+  return n.slice(0, 40);
+}
+
+interface Group {
+  key: string;
+  spot: string;
+  day: string;
+  trips: Trip[];
+  from: number;
+  to: number;
+}
+
+/**
+ * Sorties regroupées par spot et par jour : on voit d'un coup d'œil qui y va,
+ * et on rejoint le groupe en un geste (« Je viens aussi » / « Je monte avec… »).
+ */
 export function TripList({ trips, onChange, showSpot = true }: { trips: Trip[]; onChange: () => void; showSpot?: boolean }) {
   const admin = loadAdminSession();
   const score = useDayScore();
-  const byDay = useMemo(() => {
-    const m = new Map<string, Trip[]>();
+  const [busy, setBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+  const me = savedAuthor().toLowerCase();
+
+  const groups = useMemo(() => {
+    const m = new Map<string, Group>();
     for (const t of trips) {
-      if (!m.has(t.day)) m.set(t.day, []);
-      m.get(t.day)!.push(t);
+      const key = `${t.day}|${t.spot_id}`;
+      const g = m.get(key) ?? { key, spot: t.spot_id, day: t.day, trips: [], from: 24, to: 0 };
+      g.trips.push(t);
+      g.from = Math.min(g.from, t.from_hour);
+      g.to = Math.max(g.to, t.to_hour);
+      m.set(key, g);
     }
-    return [...m.entries()].sort(([a], [b]) => a.localeCompare(b));
+    return [...m.values()].sort((a, b) => a.day.localeCompare(b.day) || b.trips.length - a.trips.length);
   }, [trips]);
+
   if (!trips.length) return <p className="text-sm text-ink-700">Personne n’a encore prévu de sortie.</p>;
   const today = isoDay(0);
+  const dayName = (d: string) => (d === today ? 'Aujourd’hui' : d === isoDay(1) ? 'Demain' : dayLabel(`${d}T12:00`, true));
+
+  const join = async (g: Group, base: Trip, driver?: Trip) => {
+    const name = askName();
+    if (!name) return;
+    setBusy(g.key + (driver?.id ?? ''));
+    setMsg(null);
+    try {
+      await addTrip({
+        author: name,
+        spot_id: g.spot,
+        day: g.day,
+        from_hour: base.from_hour,
+        to_hour: base.to_hour,
+        discipline: base.discipline,
+        carpool: driver ? 'cherche' : '',
+        seats: null,
+        departure: driver?.departure ?? '',
+        comment: driver ? `${PASSENGER}${driver.author}` : '',
+      });
+      setMsg(driver ? `C’est noté : vous montez avec ${driver.author}. Échangez vos numéros pour le rendez-vous.` : 'C’est noté, à tout à l’heure sur l’eau !');
+      onChange();
+    } catch (e) {
+      setMsg(`Impossible : ${(e as Error).message}`);
+    } finally {
+      setBusy(null);
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      {byDay.map(([day, list]) => (
-        <div key={day}>
-          <p className="label mb-1">{day === today ? 'Aujourd’hui' : day === isoDay(1) ? 'Demain' : dayLabel(`${day}T12:00`, true)}</p>
-          <ul className="divide-y divide-mint-100 rounded-xl border border-mint-100 bg-cream-50/70">
-            {list.map((t) => {
-              const sc = score(t.spot_id, t.day, t.from_hour, t.to_hour);
-              const canCancel = isMine('trips', t.id) || !!admin;
-              return (
-                <li key={t.id} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
-                  <strong>{t.author}</strong>
-                  {showSpot && (
-                    <Link to={`/conditions/${t.spot_id}`} className="font-bold text-mint-700 hover:underline">
-                      {SPOT_BY_ID[t.spot_id]?.shortName ?? t.spot_id}
+    <div className="space-y-3">
+      {msg && <p className="rounded-xl bg-mint-100 px-3 py-2 text-sm font-bold text-mint-800">{msg}</p>}
+      {groups.map((g) => {
+        const sc = score(g.spot, g.day, g.from, g.to);
+        const alreadyIn = !!me && g.trips.some((t) => t.author.toLowerCase() === me);
+        const base = g.trips[0];
+        const drivers = g.trips.filter((t) => t.carpool === 'propose');
+        return (
+          <article key={g.key} className="rounded-2xl border border-mint-200 bg-cream-50/80 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-display text-base font-extrabold">
+                {dayName(g.day)}
+                {showSpot && (
+                  <>
+                    {' · '}
+                    <Link to={`/conditions/${g.spot}`} className="text-mint-700 hover:underline">
+                      {SPOT_BY_ID[g.spot]?.shortName ?? g.spot}
                     </Link>
-                  )}
-                  <span className="tabular text-ink-700">
-                    {t.from_hour} h – {t.to_hour} h
-                  </span>
-                  <span className="text-ink-700">{DISC_LABEL[t.discipline]}</span>
-                  {t.carpool === 'propose' && (
-                    <span className="chip bg-mint-100 text-mint-800">
-                      <Car className="h-3.5 w-3.5" /> propose {t.seats ?? ''} place{(t.seats ?? 0) > 1 ? 's' : ''}
-                      {t.departure && ` depuis ${t.departure}`}
+                  </>
+                )}
+              </p>
+              <span className="tabular text-sm text-ink-700">
+                {g.from} h – {g.to} h
+              </span>
+              {sc != null && <RatingBadge level={levelFromScore(sc)} size="sm" label={`prévision ${sc}/100`} />}
+              <span className="chip ml-auto bg-mint-600 text-white">
+                {g.trips.length} rider{g.trips.length > 1 ? 's' : ''}
+              </span>
+            </div>
+
+            <ul className="mt-2 space-y-1.5">
+              {g.trips.map((t) => {
+                const mine = isMine('trips', t.id);
+                const passengers = g.trips.filter((p) => passengerOf(p)?.toLowerCase() === t.author.toLowerCase()).length;
+                const left = t.carpool === 'propose' ? Math.max(0, (t.seats ?? 0) - passengers) : 0;
+                const isPassenger = passengerOf(t);
+                return (
+                  <li key={t.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                    <strong>{t.author}</strong>
+                    <span className="text-xs text-ink-700">
+                      {t.from_hour} h – {t.to_hour} h · {DISC_LABEL[t.discipline]}
                     </span>
-                  )}
-                  {t.carpool === 'cherche' && (
-                    <span className="chip bg-lemon-300/60 text-ink-900">
-                      <Hand className="h-3.5 w-3.5" /> cherche une place{t.departure && ` depuis ${t.departure}`}
-                    </span>
-                  )}
-                  {sc != null && <RatingBadge level={levelFromScore(sc)} size="sm" label={`prévision ${sc}/100`} />}
-                  {canCancel && t.id != null && (
-                    <button
-                      className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-rate-bad"
-                      onClick={async () => {
-                        if (confirm('Annuler cette sortie ?')) {
-                          await cancelTrip(t.id as number, admin).catch(() => undefined);
-                          onChange();
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" /> Annuler
-                    </button>
-                  )}
-                  {t.comment && <p className="w-full text-xs text-ink-800">{t.comment}</p>}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
+                    {t.carpool === 'propose' && (
+                      <span className="chip bg-mint-100 text-mint-800">
+                        <Car className="h-3.5 w-3.5" /> {left} place{left > 1 ? 's' : ''} libre{left > 1 ? 's' : ''}
+                        {t.departure && ` depuis ${t.departure}`}
+                      </span>
+                    )}
+                    {t.carpool === 'cherche' && !isPassenger && (
+                      <span className="chip bg-lemon-300/60 text-ink-900">
+                        <Hand className="h-3.5 w-3.5" /> cherche une place{t.departure && ` depuis ${t.departure}`}
+                      </span>
+                    )}
+                    {isPassenger && <span className="chip bg-cream-200 text-ink-800">🚗 monte avec {isPassenger}</span>}
+                    {t.carpool === 'propose' && left > 0 && !mine && !(me && t.author.toLowerCase() === me) && (
+                      <button
+                        className="btn-ghost !px-2.5 !py-1 text-xs"
+                        disabled={busy !== null}
+                        onClick={() => join(g, t, t)}
+                      >
+                        🚗 Je monte avec {t.author}
+                      </button>
+                    )}
+                    {(mine || admin) && t.id != null && (
+                      <button
+                        className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-rate-bad"
+                        onClick={async () => {
+                          if (confirm(mine ? 'Annuler ma participation ?' : `Supprimer la sortie de ${t.author} ?`)) {
+                            await cancelTrip(t.id as number, admin).catch(() => undefined);
+                            onChange();
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> {mine ? 'Je ne viens plus' : 'Supprimer'}
+                      </button>
+                    )}
+                    {t.comment && !isPassenger && <p className="w-full pl-1 text-xs text-ink-800">« {t.comment} »</p>}
+                  </li>
+                );
+              })}
+            </ul>
+
+            <div className="mt-3">
+              {alreadyIn ? (
+                <p className="text-sm font-bold text-mint-700">✅ Vous en êtes !</p>
+              ) : (
+                <button className="btn-primary w-full !py-2.5 sm:w-auto" disabled={busy !== null} onClick={() => join(g, base)}>
+                  🤙 {busy === g.key ? 'Envoi…' : `Je viens aussi (${base.from_hour} h – ${base.to_hour} h)`}
+                </button>
+              )}
+              {drivers.length === 0 && !alreadyIn && <p className="mt-1 text-[11px] text-ink-700/70">Un seul geste : votre prénom est mémorisé sur ce téléphone.</p>}
+            </div>
+          </article>
+        );
+      })}
     </div>
   );
 }
@@ -305,7 +412,7 @@ export function SpotTripsCard({ spotId }: { spotId: string }) {
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-display text-lg font-extrabold">🙋 Qui y va ?</h2>
         <button className="btn-ghost !py-1.5" onClick={() => setOpen((v) => !v)}>
-          {open ? 'Fermer' : 'J’y vais aussi'}
+          {open ? 'Fermer' : here.length ? 'Autre jour / horaire' : 'J’y vais'}
         </button>
       </div>
       {open && (
