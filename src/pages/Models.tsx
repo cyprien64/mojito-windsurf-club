@@ -248,7 +248,7 @@ export function Models() {
                   isAnimationActive={false}
                 />
               ))}
-              <Brush dataKey="time" height={22} stroke="#1E8F60" travellerWidth={10} endIndex={Math.min(47, Math.max(0, chartData.length - 1))} tickFormatter={hourLabel} />
+              <Brush dataKey="time" height={22} stroke="#17A63A" travellerWidth={10} endIndex={Math.min(47, Math.max(0, chartData.length - 1))} tickFormatter={hourLabel} />
             </LineChart>
           </ResponsiveContainer>
         </div>

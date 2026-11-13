@@ -120,7 +120,14 @@ export interface RiderProfile {
   boardBrand?: string;
   wingBrand?: string;
   foilBoardBrand?: string;
+  /** Matériel de foil (wing) : type d'aile avant, surface (cm²), mât (cm), marque / modèle. */
+  foilType?: FoilType;
+  foilFrontWing?: number | null;
+  foilMast?: number | null;
+  foilBrand?: string;
 }
+
+export type FoilType = 'polyvalent' | 'high-aspect' | 'surf' | 'downwind';
 
 export interface MarineCurrent {
   time: string;

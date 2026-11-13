@@ -56,7 +56,7 @@ export function MapPage() {
           (ev
             ? `${Math.round(ev.speed ?? 0)} nds ${cardinal(ev.dir)} · rafales ${Math.round(ev.gust ?? 0)} nds<br/>${LEVEL_META[ev.level].label} (${ev.score}/100)<br/>`
             : 'Chargement…<br/>') +
-          `<a href="#" data-spot="${s.id}" style="font-weight:700;color:#1E8F60">Voir le spot →</a></div>`,
+          `<a href="#" data-spot="${s.id}" style="font-weight:700;color:#17A63A">Voir le spot →</a></div>`,
       );
       for (const st of stations[s.id] ?? []) {
         if (st.lat == null || st.lon == null) continue;

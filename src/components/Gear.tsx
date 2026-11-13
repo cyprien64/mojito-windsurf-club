@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Sailboat, Wind } from 'lucide-react';
-import type { Discipline, GearAdvice } from '../lib/gear';
-import type { RiderLevel, RiderProfile } from '../types';
+import { FOIL_TYPE_META, type Discipline, type GearAdvice } from '../lib/gear';
+import type { FoilType, RiderLevel, RiderProfile } from '../types';
 import { clubStats, statForWind } from '../lib/clubStats';
 import { useApp } from '../context/AppContext';
 
 export const DISCIPLINE_META: Record<Discipline, { label: string; emoji: string; color: string }> = {
-  windsurf: { label: 'Planche à voile', emoji: '🏄', color: '#1E8F60' },
+  windsurf: { label: 'Planche à voile', emoji: '🏄', color: '#17A63A' },
   wingfoil: { label: 'Wing foil', emoji: '🪁', color: '#2F6FDE' },
   'les deux': { label: 'Windsurf ou wing', emoji: '🤙', color: '#8E44AD' },
   aucun: { label: 'Pas de session', emoji: '⛔', color: '#E5484D' },
@@ -64,7 +64,7 @@ export function GearPanel({ advice, compact = false, spotId }: { advice: GearAdv
         </span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <ScoreBar label="🏄 Planche à voile" value={advice.scores.windsurf} color="#1E8F60" />
+        <ScoreBar label="🏄 Planche à voile" value={advice.scores.windsurf} color="#17A63A" />
         <ScoreBar label="🪁 Wing foil" value={advice.scores.wingfoil} color="#2F6FDE" />
       </div>
       {(clubWs || clubWg) && (
@@ -107,13 +107,13 @@ export function GearPanel({ advice, compact = false, spotId }: { advice: GearAdv
             <Row k="Aile" v={`${wg.wing} m² (${wg.wingRange[0]} – ${wg.wingRange[1]})`} />
             {wg.ownedWing != null && <Row k="Dans votre matériel" v={`${wg.ownedWing} m²`} />}
             <Row k="Volume de planche" v={`${wg.boardVolume[0]} – ${wg.boardVolume[1]} L`} />
-            <Row k="Aile avant du foil" v={`${wg.frontWing[0]} – ${wg.frontWing[1]} cm²`} />
             <Row k="Mât" v={wg.mast} />
             {wg.notes.map((n) => (
               <p key={n} className="mt-1 text-xs text-rate-mid">
                 ⚠ {n}
               </p>
             ))}
+            <FoilSetup advice={advice} />
           </div>
         </div>
       )}
@@ -124,6 +124,58 @@ export function GearPanel({ advice, compact = false, spotId }: { advice: GearAdv
     </div>
   );
 }
+
+const VERDICT_COLOR: Record<string, string> = {
+  adapté: 'bg-mint-100 text-mint-800',
+  'un peu petit': 'bg-orange-100 text-orange-800',
+  'un peu grand': 'bg-orange-100 text-orange-800',
+  'trop petit': 'bg-red-50 text-red-800',
+  'trop grand': 'bg-red-50 text-red-800',
+};
+
+/** Choix et réglage du foil (wing foil). */
+function FoilSetup({ advice }: { advice: GearAdvice }) {
+  const { rider } = useApp();
+  const wg = advice.wing;
+  const f = wg.foil;
+  if (!f.mastRange) return null;
+  const mine = rider.foilType ? FOIL_TYPE_META[rider.foilType] : null;
+  return (
+    <div className="mt-3 rounded-xl border border-mint-100 bg-cream-50/80 p-3">
+      <p className="mb-1 font-display text-sm font-extrabold">🛠 Setup foil</p>
+      <Row k="Type idéal" v={`${FOIL_TYPE_META[f.bestType].label}`} />
+      <p className="py-1 text-xs text-ink-700">{f.bestTypeWhy}</p>
+      <Row k={`Aile avant (${FOIL_TYPE_META[f.bestType].short})`} v={`${f.bestFrontWing[0]} – ${f.bestFrontWing[1]} cm²`} />
+      {mine && rider.foilType !== f.bestType && <Row k={`Aile avant (votre type : ${mine.short})`} v={`${wg.frontWing[0]} – ${wg.frontWing[1]} cm²`} />}
+      <Row k="Allongement" v={FOIL_TYPE_META[f.bestType].aspect} />
+      <Row k="Fuselage" v={f.fuselage} />
+      <Row k="Stab" v={f.stab} />
+      {f.owned ? (
+        <div className="mt-2 rounded-lg bg-white/70 p-2 text-sm dark:bg-black/20">
+          <p className="flex flex-wrap items-center gap-2 font-bold">
+            Votre foil : {rider.foilBrand ? `${rider.foilBrand} · ` : ''}
+            {f.owned.label}
+            {rider.foilMast ? ` · mât ${rider.foilMast} cm` : ''}
+            <span className={`chip ${VERDICT_COLOR[f.owned.verdict]}`}>{f.owned.verdict}</span>
+          </p>
+          <p className="mt-0.5 text-xs text-ink-700">{f.owned.text}</p>
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-ink-700">
+          Renseignez votre foil dans <Link to="/materiel" className="font-bold text-mint-700 underline">votre profil</Link> pour savoir s’il est adapté à ces conditions.
+        </p>
+      )}
+      <p className="label mt-3">Réglages conseillés</p>
+      <ul className="mt-1 space-y-1 text-xs text-ink-800">
+        {f.setup.map((t) => (
+          <li key={t}>• {t}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+const FOIL_TYPES = Object.keys(FOIL_TYPE_META) as FoilType[];
 
 const LEVELS: RiderLevel[] = ['débutant', 'intermédiaire', 'confirmé', 'expert'];
 
@@ -181,6 +233,28 @@ function WeightField({ value, onChange }: { value: number; onChange: (kg: number
   );
 }
 
+/** Champ numérique libre : enregistré à la sortie du champ, vide = non renseigné. */
+function NumberField({ label, placeholder, min, max, value, onChange }: { label: string; placeholder: string; min: number; max: number; value?: number | null; onChange: (v: number | null) => void }) {
+  return (
+    <label className="block">
+      <span className="label">{label}</span>
+      <input
+        type="text"
+        inputMode="numeric"
+        className="input mt-1 tabular"
+        placeholder={placeholder}
+        defaultValue={value ?? ''}
+        onBlur={(e) => {
+          const n = Math.round(Number(e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.')));
+          if (!e.target.value.trim()) onChange(null);
+          else if (Number.isFinite(n) && n >= min && n <= max) onChange(n);
+          else e.target.value = value != null ? String(value) : '';
+        }}
+      />
+    </label>
+  );
+}
+
 /** Formulaire du profil (enregistré sur l'appareil). */
 export function RiderForm() {
   const { rider, setRider } = useApp();
@@ -229,10 +303,31 @@ export function RiderForm() {
           <input className="input mt-1" placeholder={ph} defaultValue={rider[key] ?? ''} maxLength={60} onBlur={(e) => set({ [key]: e.target.value.trim() } as Partial<RiderProfile>)} />
         </label>
       ))}
-      <label className="flex items-center gap-2 text-sm font-bold sm:col-span-2">
+      <label className="flex items-center gap-2 text-sm font-bold sm:col-span-2 lg:col-span-4">
         <input type="checkbox" className="h-5 w-5 accent-mint-600" checked={rider.doesWing} onChange={(e) => set({ doesWing: e.target.checked })} />
         Je pratique aussi le wing foil
       </label>
+      {rider.doesWing && (
+        <>
+          <label className="block">
+            <span className="label">Type de mon aile avant</span>
+            <select className="input mt-1" value={rider.foilType ?? ''} onChange={(e) => set({ foilType: (e.target.value || undefined) as FoilType | undefined })}>
+              <option value="">— non renseigné —</option>
+              {FOIL_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {FOIL_TYPE_META[t].label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <NumberField label="Surface aile avant (cm²)" placeholder="ex. 1300" min={300} max={4000} value={rider.foilFrontWing} onChange={(v) => set({ foilFrontWing: v })} />
+          <NumberField label="Longueur du mât (cm)" placeholder="ex. 80" min={30} max={120} value={rider.foilMast} onChange={(v) => set({ foilMast: v })} />
+          <label className="block">
+            <span className="label">Mon foil (marque / modèle)</span>
+            <input className="input mt-1" placeholder="ex. Axis ART 999" defaultValue={rider.foilBrand ?? ''} maxLength={60} onBlur={(e) => set({ foilBrand: e.target.value.trim() })} />
+          </label>
+        </>
+      )}
     </div>
   );
 }

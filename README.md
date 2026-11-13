@@ -34,11 +34,11 @@ React · TypeScript · Vite · Tailwind CSS · Recharts · Lucide · Open-Meteo.
 | **Prévisions** | 48 h heure par heure (vent, rafales, direction, température, pluie), créneaux favorables surlignés, sélection de période ; 7 jours jour par jour |
 | **Modèles météo** | Tableau ECMWF / GFS / ICON / ICON-EU / ARPEGE / AROME HD, heure du dernier run de chaque modèle, graphique comparatif, indicateur d'accord (forte convergence, convergence moyenne, forte divergence) |
 | **Webcams** | Webcams publiques intégrées (Viewsurf / office de tourisme de Leucate), rechargement automatique, plein écran, affichage multiple, liens vers les webcams proches pour les spots sans caméra |
-| **Matériel** | Profil du rider (poids, niveau, voiles et ailes possédées) puis conseils : taille de voile, volume de planche, aileron, aile de wing, volume de planche de foil, aile avant, longueur de mât, et choix **windsurf ou wing foil** |
+| **Matériel** | Profil du rider (poids, niveau, voiles et ailes possédées) puis conseils : taille de voile, volume de planche, aileron, aile de wing, volume de planche de foil, et choix **windsurf ou wing foil**. **Setup foil** : type d'aile avant idéal (polyvalent, haut allongement, surf, downwind), surface, mât, fuselage, stab, réglages (position du mât, cale) et verdict sur le foil déclaré par le rider |
 | **Week-end** | Meilleur spot et meilleur créneau du samedi et du dimanche |
 | **Sur l'eau** | « J'y suis / j'y étais » : qui navigue en ce moment, retours de session, tailles de voile et d'aile réellement utilisées par le club *(nécessite Supabase)* |
 | **Classement** | Classement général (distance, temps sur l'eau, sessions, vitesse moyenne, vitesse max) sur 7 jours, 30 jours, la saison ou tout, filtrable par spot, et **micro-compétitions** créées par les admins (période, spot, discipline, critère) avec podium *(nécessite Supabase)* |
-| **Trajets** | Distance et temps de route vers chaque spot depuis votre position (GPS ou ville), avec liens Google Maps et Waze. Itinéraires OSRM / OpenStreetMap, sans trafic ; la position reste sur l'appareil |
+| **Trajets** | Bouton **« Y aller avec Waze »** (guidage et temps réel avec trafic dans l'appli Waze) et carte trafic Waze en direct sur chaque spot. Le site affiche aussi une estimation sans trafic (OSRM / OpenStreetMap) pour comparer les spots depuis votre position ; la position reste sur l'appareil |
 | **Carte** | Carte OpenStreetMap des spots (couleur = navigabilité) et des balises de vent |
 | **Comparer** | Plusieurs spots côte à côte (tableau et graphique 48 h) |
 | **Historique** | 7 derniers jours (valeurs modélisées) et heures navigables par jour |
@@ -255,7 +255,9 @@ Fichier : `src/lib/gear.ts`. Les calculs utilisent le profil du rider (page **Ma
 | Volume de planche windsurf | poids + marge (plus de vent : moins de volume ; débutant : +70 à +90 L) |
 | Aileron | ≈ 5,5 × surface de voile (cm) ; anti-algues sur les spots à algues ; plus court sur les spots peu profonds |
 | Aile de wing | ≈ poids (kg) / vent (nds) |
-| Planche et foil de wing | volume selon le niveau, aile avant de 900 à 2 200 cm², mât court si l'eau est peu profonde |
+| Planche et foil de wing | volume selon le niveau, mât court si l'eau est peu profonde |
+| Aile avant du foil | surface de référence selon niveau, poids et vent, puis × 0,85 (haut allongement), × 1,1 (surf), × 0,75 (downwind). Type conseillé : surf pour débuter ou dans les vagues, haut allongement par vent léger, polyvalent sinon |
+| Réglage du foil | mât avancé sur le rail par vent léger, reculé par vent fort ; verdict « trop petit / adapté / trop grand » si le rider a renseigné son aile avant |
 
 **Windsurf ou wing foil ?** Le site compare les deux. Vent trop léger pour planer mais suffisant pour voler : wing. Vent fort et établi : windsurf. Vent rafaleux : léger avantage au wing. Plan d'eau peu profond ou à algues (La Mine, Parc à huîtres) : foil déconseillé. Orientation dangereuse : aucune session conseillée.
 
@@ -293,7 +295,8 @@ Importez le dépôt : `netlify.toml` et `vercel.json` sont fournis (commande `np
 | [Pioupiou / OpenWindMap](https://developers.pioupiou.fr/api/live/) | Vent **mesuré** par les balises proches (Gabas, Leucate, Saint-Jean-de-Luz, Gruissan) | Non |
 | Open-Meteo Marine, `sea_level_height_msl` | Marées (Saint-Jean-de-Luz, Hossegor), heures approximatives, sans coefficient | Non |
 | [OpenStreetMap](https://www.openstreetmap.org) + Leaflet | Carte des spots | Non |
-| [OSRM](https://project-osrm.org) (serveur de démonstration) + Nominatim | Temps et distance de route vers les spots (à la demande de l'utilisateur) | Non |
+| [OSRM](https://project-osrm.org) (serveur de démonstration) + Nominatim | Estimation du temps et de la distance de route (à la demande de l'utilisateur) | Non |
+| Waze (liens `waze.com/ul` et carte `embed.waze.com`) | Guidage et trafic en temps réel. Waze ne propose pas d'API publique de calcul d'itinéraire pour un site web : le temps réel s'affiche dans l'appli Waze | Non |
 | [Telegram Bot API](https://core.telegram.org/bots/api) | Alertes automatiques (facultatif) | Jeton de bot |
 | [Supabase](https://supabase.com) | Retours de session, réglages partagés, connexion des admins (facultatif) | Clé publique « anon » |
 | [Viewsurf](https://www.viewsurf.com) (via l'office de tourisme de Leucate) | Webcams intégrées | Non |

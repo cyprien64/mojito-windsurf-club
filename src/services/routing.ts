@@ -133,4 +133,7 @@ export function formatDuration(min: number): string {
 }
 
 export const googleMapsUrl = (lat: number, lon: number) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`;
-export const wazeUrl = (lat: number, lon: number) => `https://waze.com/ul?ll=${lat},${lon}&navigate=yes`;
+/** Lien officiel Waze : ouvre l'appli (ou waze.com) avec le guidage et le temps de trajet en temps réel. */
+export const wazeUrl = (lat: number, lon: number) => `https://waze.com/ul?ll=${lat},${lon}&navigate=yes&zoom=12`;
+/** Carte trafic en direct de Waze (intégration officielle « Waze Live Map »). */
+export const wazeEmbedUrl = (lat: number, lon: number, zoom = 11) => `https://embed.waze.com/iframe?zoom=${zoom}&lat=${lat}&lon=${lon}&ct=livemap&pin=1`;

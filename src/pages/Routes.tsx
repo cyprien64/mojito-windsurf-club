@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Car, Navigation } from 'lucide-react';
+import { Car } from 'lucide-react';
 import { SPOTS } from '../config/spots';
 import { useApp } from '../context/AppContext';
 import { OriginPicker } from '../components/Route';
 import { RatingBadge } from '../components/RatingBadge';
-import { formatDuration, googleMapsUrl } from '../services/routing';
+import { formatDuration, wazeUrl } from '../services/routing';
 import { fmt, hhmm } from '../lib/format';
 
 export function RoutesPage() {
@@ -18,7 +18,10 @@ export function RoutesPage() {
         <h1 className="flex items-center gap-2 font-display text-3xl font-extrabold tracking-tight">
           <Car className="h-7 w-7 text-mint-600" /> Trajets
         </h1>
-        <p className="text-sm text-ink-700">Distance et temps de route jusqu’à chaque spot depuis votre position, avec les conditions du moment.</p>
+        <p className="text-sm text-ink-700">
+          Distance et temps de route estimés jusqu’à chaque spot, avec les conditions du moment. Le bouton <strong>Waze</strong> de chaque ligne lance le
+          guidage avec le trafic en temps réel.
+        </p>
       </section>
       <section className="card card-pad">
         <OriginPicker />
@@ -49,8 +52,8 @@ export function RoutesPage() {
                     <p className="text-xs text-ink-700">{routesLoading ? 'calcul…' : '—'}</p>
                   )}
                 </div>
-                <a className="grid h-9 w-9 place-items-center rounded-full bg-mint-600 text-white" href={googleMapsUrl(spot.lat, spot.lon)} target="_blank" rel="noreferrer" aria-label={`Itinéraire vers ${spot.name}`}>
-                  <Navigation className="h-4 w-4" />
+                <a className="rounded-full bg-[#33CCFF] px-3 py-2 text-xs font-extrabold text-[#0A1A2A]" href={wazeUrl(spot.lat, spot.lon)} target="_blank" rel="noreferrer" aria-label={`Itinéraire Waze vers ${spot.name}`}>
+                  Waze
                 </a>
               </li>
             ))}

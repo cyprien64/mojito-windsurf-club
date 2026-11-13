@@ -66,7 +66,7 @@ export const SPOTS: SpotDefinition[] = [
     lon: -1.3205,
     coordSource: 'OpenStreetMap / Nominatim — objet « Étang de Léon »',
     coordCheckedOn: '2026-11-13',
-    accent: '#4CC98F',
+    accent: '#3FE06A',
     photo: {
       src: 'spots/leon.jpg',
       author: 'VIGNA christian',
@@ -295,7 +295,7 @@ export const SPOTS: SpotDefinition[] = [
     lon: -1.3277,
     coordSource: 'OpenStreetMap — centre de l’emprise de l’« Étang de Soustons » (relation 1705749)',
     coordCheckedOn: '2026-11-13',
-    accent: '#4CC98F',
+    accent: '#3FE06A',
     info: 'Grand étang landais d’eau douce, abrité par la forêt. Régime de vents d’ouest et brises thermiques en été.',
     water: {
       depth: 'faible',
@@ -388,7 +388,7 @@ export const SPOTS: SpotDefinition[] = [
     lon: -0.0858,
     coordSource: 'OpenStreetMap — centre de l’emprise du « Lac de Lourdes » (way 42425195)',
     coordCheckedOn: '2026-11-13',
-    accent: '#4CC98F',
+    accent: '#3FE06A',
     photo: {
       src: 'spots/lourdes.jpg',
       author: 'Lourdes Tourisme',
@@ -423,7 +423,7 @@ export const SPOTS: SpotDefinition[] = [
     lon: 1.8055,
     coordSource: 'OpenStreetMap / Nominatim — réservoir « Lac de la Ganguise »',
     coordCheckedOn: '2026-11-13',
-    accent: '#4CC98F',
+    accent: '#3FE06A',
     info:
       'Grand réservoir du Lauragais, exposé aux deux vents locaux : le Cers (ouest / nord-ouest) et l’Autan (sud-est), souvent soutenus. Niveau d’eau variable selon la saison.',
     water: {

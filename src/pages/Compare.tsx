@@ -11,7 +11,7 @@ import { AGREEMENT_META } from '../lib/scoring';
 import { cardinal } from '../lib/wind';
 import { dayLabel, fmt, hhmm, hourLabel, relativeDay } from '../lib/format';
 
-const PALETTE = ['#1E8F60', '#2F6FDE', '#E58A1F', '#8E44AD', '#E5484D', '#178F86'];
+const PALETTE = ['#17A63A', '#2F6FDE', '#E58A1F', '#8E44AD', '#E5484D', '#178F86'];
 
 export function Compare() {
   const { weather, evaluations, favorites, refresh } = useApp();

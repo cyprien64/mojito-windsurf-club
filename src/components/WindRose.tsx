@@ -95,7 +95,7 @@ export function WindRose({ sectors, direction, speedLabel, onSectorClick, size =
           {hover != null ? sectorRange(hover) : direction != null ? `${Math.round(direction)}°` : ''}
         </text>
         {speedLabel && hover == null && (
-          <text x={C} y={C + 28} textAnchor="middle" fontSize="10" fontWeight="700" fill="#1E8F60">
+          <text x={C} y={C + 28} textAnchor="middle" fontSize="10" fontWeight="700" fill="#17A63A">
             {speedLabel}
           </text>
         )}

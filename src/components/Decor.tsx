@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react';
 export function MintLeaf({ className = '', style }: { className?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 64 64" className={className} style={style} aria-hidden="true">
-      <path d="M8 56 C4 30 22 8 56 6 C58 36 38 58 8 56Z" fill="#4CC98F" />
+      <path d="M8 56 C4 30 22 8 56 6 C58 36 38 58 8 56Z" fill="#3FE06A" />
       <path d="M8 56 C4 30 22 8 56 6 C58 36 38 58 8 56Z" fill="url(#leaf-shine)" opacity=".5" />
       <path d="M10 54 C24 40 36 26 54 8" stroke="#19724E" strokeWidth="2.4" fill="none" strokeLinecap="round" />
       <path d="M22 42 L18 30 M30 34 L28 20 M38 26 L40 14 M26 38 L38 40 M34 30 L46 30" stroke="#19724E" strokeWidth="1.4" opacity=".6" strokeLinecap="round" />

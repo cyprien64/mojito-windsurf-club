@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import { ArrowRight, Clock, Compass, Star } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -7,7 +6,8 @@ import { useApp } from '../context/AppContext';
 import { SpotCard } from '../components/SpotCard';
 import { DataStamp } from '../components/DataStamp';
 import { ErrorBox, WarningBanner } from '../components/States';
-import { LimeSlice, MintLeaf, Waves } from '../components/Decor';
+import { Waves } from '../components/Decor';
+import { ClubLogo } from '../components/Logo';
 import { RatingBadge, ScoreRing } from '../components/RatingBadge';
 import { WindArrow } from '../components/WindArrow';
 import { SafetyNotice } from '../components/SafetyNotice';
@@ -26,22 +26,27 @@ export function Home() {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-mint-500 via-mint-600 to-lagoon-600 px-5 pb-16 pt-7 text-white shadow-lift sm:px-8 sm:pt-10">
-        <MintLeaf className="absolute -right-6 -top-6 h-20 w-20 animate-floaty opacity-40 sm:-right-4 sm:-top-3 sm:h-28 sm:w-28 sm:opacity-90" style={{ '--r': '25deg' } as unknown as CSSProperties} />
-        <LimeSlice className="absolute right-20 top-16 hidden h-14 w-14 animate-floaty opacity-95 [animation-delay:-2s] sm:block" />
-        <MintLeaf className="absolute -left-5 bottom-10 h-16 w-16 rotate-180 opacity-40" />
-        <p className="relative pr-10 text-xs font-bold uppercase tracking-[.2em] text-lime-300 sm:pr-0">Windsurf & wing · Landes · Béarn · Pays basque · Leucate</p>
-        <h1 className="mt-2 max-w-xl font-display text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
-          MOJITO <span className="italic text-lemon-300">WINDSURF</span> CLUB
-        </h1>
-        <p className="mt-3 font-display text-lg italic text-mint-50 sm:text-xl">Find your wind. Find your spot.</p>
+      {/* Hero : logo du club sur fond noir, comme l'original */}
+      <section className="relative overflow-hidden rounded-3xl bg-[#050806] px-5 pb-16 pt-5 text-white shadow-lift sm:px-8 sm:pt-6">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(600px_300px_at_70%_40%,rgba(34,210,74,0.18),transparent_70%)]" />
+        <div className="relative flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
+          <ClubLogo className="w-full max-w-[460px] sm:order-2 sm:w-[52%]" />
+          <div className="text-center sm:flex-1 sm:text-left">
+            <p className="text-[11px] font-bold uppercase tracking-[.2em] text-[#3FE06A]">Windsurf & wing · Béarn · Landes · Pays basque · Leucate</p>
+            <h1 className="mt-2 font-brand text-2xl leading-tight text-white sm:text-4xl">
+              Find your <span className="text-[#3FE06A]">wind</span>.
+              <br />
+              Find your <span className="text-[#3FE06A]">spot</span>.
+            </h1>
+            <p className="mt-2 font-display text-base italic text-white/70">Team 100 % Pyrénées</p>
+          </div>
+        </div>
         <Waves className="absolute inset-x-0 bottom-0 h-14 w-full text-cream-100" />
       </section>
 
       {/* Où naviguer aujourd'hui ? */}
-      <section className="card relative -mt-14 overflow-hidden border-lime-300/60 p-0">
-        <div className="bg-gradient-to-r from-lemon-300/60 via-lime-300/40 to-transparent px-5 py-3">
+      <section className="card relative -mt-14 overflow-hidden border-mint-300/70 p-0">
+        <div className="bg-gradient-to-r from-mint-200/70 via-mint-100/50 to-transparent px-5 py-3">
           <h2 className="flex items-center gap-2 font-display text-xl font-extrabold sm:text-2xl">🌴 OÙ NAVIGUER AUJOURD’HUI ?</h2>
         </div>
         <div className="p-5">
@@ -67,7 +72,7 @@ export function Home() {
                   </span>
                   <span>Rafales {Math.round(best.gust ?? 0)} nds</span>
                   {best.bestWindow && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-night px-3 py-1 text-xs text-lemon-300">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#050806] px-3 py-1 text-xs text-[#3FE06A]">
                       <Clock className="h-3.5 w-3.5" /> MEILLEUR CRÉNEAU : {relativeDay(best.bestWindow.start, todayIso)} {hhmm(best.bestWindow.start)} – {hhmm(best.bestWindow.end)}
                     </span>
                   )}

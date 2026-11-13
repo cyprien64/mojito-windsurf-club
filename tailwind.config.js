@@ -15,6 +15,7 @@ export default {
         rate: { bad: '#E5484D', mid: '#F2994A', good: '#3DBE6A', top: '#0F7A43' },
       },
       fontFamily: {
+        brand: ['Audiowide', 'Manrope', 'sans-serif'],
         display: ['Fraunces', 'Georgia', 'serif'],
         sans: ['Manrope', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
       },

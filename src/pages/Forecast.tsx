@@ -235,8 +235,8 @@ export function Forecast() {
                 <ComposedChart data={hourly} margin={{ top: 8, right: 8, left: -18, bottom: 0 }} syncId="fc">
                   <defs>
                     <linearGradient id="windFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0" stopColor="#2BB077" stopOpacity={0.55} />
-                      <stop offset="1" stopColor="#2BB077" stopOpacity={0.05} />
+                      <stop offset="0" stopColor="#22D24A" stopOpacity={0.55} />
+                      <stop offset="1" stopColor="#22D24A" stopOpacity={0.05} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid vertical={false} />
@@ -257,12 +257,12 @@ export function Forecast() {
                   <YAxis allowDecimals={false} />
                   <Tooltip content={<TooltipBox />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Area type="monotone" dataKey="speed" name="Vent moyen" stroke="#1E8F60" strokeWidth={2.5} fill="url(#windFill)" connectNulls />
+                  <Area type="monotone" dataKey="speed" name="Vent moyen" stroke="#17A63A" strokeWidth={2.5} fill="url(#windFill)" connectNulls />
                   <Line type="monotone" dataKey="gust" name="Rafales" stroke="#E58A1F" strokeWidth={2} dot={false} strokeDasharray="5 3" connectNulls />
                   <Brush
                     dataKey="time"
                     height={24}
-                    stroke="#1E8F60"
+                    stroke="#17A63A"
                     travellerWidth={10}
                     startIndex={start}
                     endIndex={end}
@@ -376,7 +376,7 @@ export function Forecast() {
                   <YAxis allowDecimals={false} />
                   <Tooltip formatter={(v: any) => `${fmt(Number(v))} nds`} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="windMax" name="Vent max" fill="#2BB077" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="windMax" name="Vent max" fill="#22D24A" radius={[6, 6, 0, 0]} />
                   <Bar dataKey="gustMax" name="Rafales max" fill="#F2994A" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

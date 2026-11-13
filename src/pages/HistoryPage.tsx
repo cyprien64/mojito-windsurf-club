@@ -84,7 +84,7 @@ export function HistoryPage() {
               <YAxis yAxisId="t" orientation="right" unit="°" width={36} />
               <Tooltip labelFormatter={(t: any) => `${dayLabel(String(t), true)} · ${hourLabel(String(t))}`} formatter={(v: any) => fmt(Number(v), 1)} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Area yAxisId="w" type="monotone" dataKey="speed" name="Vent moyen (nds)" stroke="#1E8F60" fill="#2BB077" fillOpacity={0.25} strokeWidth={2} />
+              <Area yAxisId="w" type="monotone" dataKey="speed" name="Vent moyen (nds)" stroke="#17A63A" fill="#22D24A" fillOpacity={0.25} strokeWidth={2} />
               <Line yAxisId="w" type="monotone" dataKey="gust" name="Rafales (nds)" stroke="#E58A1F" dot={false} strokeDasharray="5 3" />
               <Line yAxisId="t" type="monotone" dataKey="temp" name="Température (°C)" stroke="#EFD12B" dot={false} />
             </ComposedChart>

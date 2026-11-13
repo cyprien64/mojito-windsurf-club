@@ -2,8 +2,8 @@
 // - Pages / scripts : réseau d'abord, cache en secours (fonctionne hors ligne).
 // - Données météo (Open-Meteo) : réseau d'abord, dernière réponse en secours.
 // - Webcams : jamais mises en cache (pour ne pas afficher une vieille image).
-const VERSION = 'mwc-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png'];
+const VERSION = 'mwc-v2';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './brand/emblem.jpg', './icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
