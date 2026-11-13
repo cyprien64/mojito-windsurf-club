@@ -15,6 +15,7 @@ import { GearPage } from './pages/GearPage';
 import { Weekend } from './pages/Weekend';
 import { Sessions } from './pages/Sessions';
 import { Leaderboard } from './pages/Leaderboard';
+import { RoutesPage } from './pages/Routes';
 import { lazy, Suspense } from 'react';
 
 // La carte (Leaflet) n'est chargée que si on l'ouvre.
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="weekend" element={<Weekend />} />
             <Route path="sessions" element={<Sessions />} />
             <Route path="classement" element={<Leaderboard />} />
+            <Route path="trajets" element={<RoutesPage />} />
             <Route
               path="carte"
               element={

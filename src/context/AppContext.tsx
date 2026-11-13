@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ClubSettings, ModelRunInfo, RiderProfile, SpotModels, SpotWeather, StationReading } from '../types';
 import { fetchStations, isFresh, withContext } from '../services/stations';
+import { fetchRoutes, loadOrigin, saveOrigin, type Origin, type RouteInfo } from '../services/routing';
 import { backendEnabled, fetchRemoteSettings, listReports, type SessionReport } from '../services/backend';
 import { DEFAULT_RIDER } from '../lib/gear';
 import { SPOTS, SPOT_BY_ID, DEFAULT_SPOT_ID } from '../config/spots';
@@ -58,6 +59,11 @@ interface AppContextValue {
   reports: SessionReport[];
   reportsError: string | null;
   reloadReports: () => void;
+  /** Point de départ choisi par l'utilisateur (stocké sur l'appareil uniquement). */
+  origin: Origin | null;
+  setOrigin: (o: Origin | null) => void;
+  routes: Record<string, RouteInfo>;
+  routesLoading: boolean;
 }
 
 export type Theme = 'auto' | 'light' | 'dark';
@@ -271,6 +277,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(id);
   }, [reloadReports]);
 
+  // ---------- Trajets ----------
+  const [origin, setOriginState] = useState<Origin | null>(() => loadOrigin());
+  const [routes, setRoutes] = useState<Record<string, RouteInfo>>({});
+  const [routesLoading, setRoutesLoading] = useState(false);
+  const setOrigin = useCallback((o: Origin | null) => {
+    saveOrigin(o);
+    setOriginState(o);
+    if (!o) setRoutes({});
+  }, []);
+  useEffect(() => {
+    if (!origin) return;
+    let alive = true;
+    setRoutesLoading(true);
+    fetchRoutes(origin, SPOTS)
+      .then((r) => alive && setRoutes(r))
+      .finally(() => alive && setRoutesLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, [origin]);
+
   const value: AppContextValue = {
     settings,
     settingsSource,
@@ -297,6 +324,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     reports,
     reportsError,
     reloadReports,
+    origin,
+    setOrigin,
+    routes,
+    routesLoading,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

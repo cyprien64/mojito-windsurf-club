@@ -23,6 +23,7 @@ import { StationCard } from '../components/Station';
 import { TideCard } from '../components/TideCard';
 import { ShareButton } from '../components/Share';
 import { isOnWater } from './Sessions';
+import { RouteCard } from '../components/Route';
 
 const STRENGTH_COLOR: Record<string, string> = { faible: '#7BDCAE', modéré: '#3DBE6A', fort: '#F2994A', 'très fort': '#E5484D' };
 
@@ -202,6 +203,8 @@ export function Conditions() {
           <GearPanel advice={(gear.best ?? gear.now)!} spotId={spot.id} />
         </section>
       )}
+
+      <RouteCard spot={spot} />
 
       {spotStations.length > 0 && (
         <StationCard stations={spotStations} modelSpeed={c.windSpeed} modelDir={c.windDirection} usedForScore={ev.windSource === 'balise'} />

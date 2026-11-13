@@ -38,6 +38,7 @@ React · TypeScript · Vite · Tailwind CSS · Recharts · Lucide · Open-Meteo.
 | **Week-end** | Meilleur spot et meilleur créneau du samedi et du dimanche |
 | **Sur l'eau** | « J'y suis / j'y étais » : qui navigue en ce moment, retours de session, tailles de voile et d'aile réellement utilisées par le club *(nécessite Supabase)* |
 | **Classement** | Classement général (distance, temps sur l'eau, sessions, vitesse moyenne, vitesse max) sur 7 jours, 30 jours, la saison ou tout, filtrable par spot, et **micro-compétitions** créées par les admins (période, spot, discipline, critère) avec podium *(nécessite Supabase)* |
+| **Trajets** | Distance et temps de route vers chaque spot depuis votre position (GPS ou ville), avec liens Google Maps et Waze. Itinéraires OSRM / OpenStreetMap, sans trafic ; la position reste sur l'appareil |
 | **Carte** | Carte OpenStreetMap des spots (couleur = navigabilité) et des balises de vent |
 | **Comparer** | Plusieurs spots côte à côte (tableau et graphique 48 h) |
 | **Historique** | 7 derniers jours (valeurs modélisées) et heures navigables par jour |
@@ -155,6 +156,9 @@ Tout se trouve dans **`src/config/spots.ts`**. Chaque spot contient :
 | Gruissan – Étang de Mateille | 43.1252, 3.1260 | OpenStreetMap / Nominatim, « Étang de Mateille » |
 | Leucate – La Franqui (mer) | 42.9419, 3.0388 | OpenStreetMap, poste de secours des Coussoules |
 | Lac de Lourdes | 43.1083, -0.0858 | OpenStreetMap, centre du « Lac de Lourdes » |
+| Lac de la Ganguise | 43.3179, 1.8055 | OpenStreetMap / Nominatim, réservoir « Lac de la Ganguise » |
+| Lac de Sanguinet | 44.4972, -1.0927 | Windfinder, spot « Lac de Sanguinet / Sanguinet » |
+| Narbonne – La Nautique | 43.1420, 3.0093 | OpenStreetMap / Nominatim, port de Port-la-Nautique |
 
 > Le « Lac de Cabas / Esclourentis » demandé correspond au **lac du Gabas** à **Eslourenties-Daban** (64) : c'est l'orthographe officielle utilisée dans le site.
 > Pour plus de précision, remplacez ces coordonnées par celles de votre point de mise à l'eau habituel (clic droit dans Google Maps, puis copier les coordonnées).
@@ -289,6 +293,7 @@ Importez le dépôt : `netlify.toml` et `vercel.json` sont fournis (commande `np
 | [Pioupiou / OpenWindMap](https://developers.pioupiou.fr/api/live/) | Vent **mesuré** par les balises proches (Gabas, Leucate, Saint-Jean-de-Luz, Gruissan) | Non |
 | Open-Meteo Marine, `sea_level_height_msl` | Marées (Saint-Jean-de-Luz, Hossegor), heures approximatives, sans coefficient | Non |
 | [OpenStreetMap](https://www.openstreetmap.org) + Leaflet | Carte des spots | Non |
+| [OSRM](https://project-osrm.org) (serveur de démonstration) + Nominatim | Temps et distance de route vers les spots (à la demande de l'utilisateur) | Non |
 | [Telegram Bot API](https://core.telegram.org/bots/api) | Alertes automatiques (facultatif) | Jeton de bot |
 | [Supabase](https://supabase.com) | Retours de session, réglages partagés, connexion des admins (facultatif) | Clé publique « anon » |
 | [Viewsurf](https://www.viewsurf.com) (via l'office de tourisme de Leucate) | Webcams intégrées | Non |

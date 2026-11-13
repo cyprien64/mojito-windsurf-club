@@ -11,6 +11,7 @@ import { fmt, hhmm, octas, relativeDay } from '../lib/format';
 import { WeatherIcon } from './WeatherIcon';
 import { weatherInfo } from '../lib/weatherCodes';
 import { StationLine } from './Station';
+import { RouteLine } from './Route';
 import { Skeleton } from './States';
 
 export function SpotCard({ spot, ev, isBest, todayIso }: { spot: SpotDefinition; ev?: SpotEvaluation; isBest?: boolean; todayIso?: string }) {
@@ -105,6 +106,7 @@ export function SpotCard({ spot, ev, isBest, todayIso }: { spot: SpotDefinition;
               </p>
             )}
             {station && <StationLine station={station} />}
+            <RouteLine spotId={spot.id} />
             <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-ink-800">
               {ev.bestWindow ? (
                 <>

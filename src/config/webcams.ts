@@ -101,6 +101,17 @@ export const WEBCAMS: Webcam[] = [
     live: false,
   },
   {
+    id: 'sanguinet-viewsurf',
+    title: 'Sanguinet – webcam du lac (Viewsurf)',
+    provider: 'Viewsurf',
+    kind: 'link',
+    url: 'http://www.viewsurf.com/univers/plage/vue/12270-france-aquitaine-sanguinet-live',
+    sourcePage: 'https://www.plages-landes.info/en/webcams/',
+    spotIds: ['sanguinet'],
+    proximity: 'Webcam du lac de Sanguinet (lien externe)',
+    live: false,
+  },
+  {
     id: 'moliets',
     title: 'Moliets – plage sud (webcam la plus proche du lac de Léon)',
     provider: 'Viewsurf',
@@ -165,6 +176,8 @@ export const WEBCAMS: Webcam[] = [
 export const NO_WEBCAM_NOTE: Record<string, string> = {
   leon: 'Aucune webcam publique filmant le lac de Léon n’a été trouvée.',
   gabas: 'Aucune webcam publique n’a été trouvée pour le lac du Gabas.',
+  ganguise: 'Aucune webcam publique filmant le lac de la Ganguise n’a été trouvée.',
+  'la-nautique': 'Aucune webcam publique filmant La Nautique n’a été trouvée.',
   lourdes: 'Aucune webcam publique filmant le lac de Lourdes n’a été trouvée.',
   hossegor: 'Aucune webcam publique filmant le lac d’Hossegor n’a été trouvée.',
   soustons: 'Aucune webcam publique filmant l’étang de Soustons n’a été trouvée.',

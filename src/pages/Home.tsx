@@ -114,6 +114,7 @@ export function Home() {
             <h2 className="section-title">Nos spots</h2>
             <DataStamp fetchedAt={weather.fetchedAt} stale={weather.stale} loading={weather.loading} onRefresh={refresh} />
           </div>
+          <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setOnlyFav((v) => !v)}
             className={`chip border ${onlyFav ? 'border-lemon-500 bg-lemon-300 text-ink-900' : 'border-mint-200 bg-cream-50 text-ink-800'}`}
@@ -123,6 +124,10 @@ export function Home() {
           >
             <Star className="h-3.5 w-3.5" /> Favoris uniquement
           </button>
+          <Link to="/trajets" className="chip border border-mint-200 bg-cream-50 text-ink-800">
+            🚗 Temps de trajet
+          </Link>
+          </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {spots.map((s) => (

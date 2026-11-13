@@ -413,6 +413,93 @@ export const SPOTS: SpotDefinition[] = [
       notes: 'Réglages initiaux à valider par les admins. Lac de montagne : vent souvent rafaleux.',
     },
   },
+  {
+    id: 'ganguise',
+    name: 'Lac de la Ganguise',
+    shortName: 'Ganguise',
+    location: 'Belflou (11) · Lauragais',
+    kind: 'lac',
+    lat: 43.3179,
+    lon: 1.8055,
+    coordSource: 'OpenStreetMap / Nominatim — réservoir « Lac de la Ganguise »',
+    coordCheckedOn: '2026-11-13',
+    accent: '#4CC98F',
+    info:
+      'Grand réservoir du Lauragais, exposé aux deux vents locaux : le Cers (ouest / nord-ouest) et l’Autan (sud-est), souvent soutenus. Niveau d’eau variable selon la saison.',
+    water: {
+      depth: 'moyenne',
+      weed: false,
+      surface: 'clapot',
+      foil: 'prudence',
+      foilNote: 'Niveau du réservoir variable : repérez les hauts-fonds près des berges avant de foiler.',
+    },
+    defaults: {
+      // Cers (O–NO) et Autan (SE) : les deux régimes dominants du Lauragais.
+      sectors: sectors({ ideal: ['O', 'ONO', 'NO', 'SE', 'ESE'], bad: ['N', 'NNE', 'S', 'SSO'] }),
+      speed: { minRideable: 10, idealMin: 14, idealMax: 26, maxRideable: 34 },
+      gusts: { maxGust: 42, maxGustFactor: 1.7 },
+      notes: 'Réglages initiaux à valider par les admins. L’Autan peut être très rafaleux.',
+    },
+  },
+  {
+    id: 'sanguinet',
+    name: 'Lac de Sanguinet',
+    shortName: 'Sanguinet',
+    location: 'Lac de Cazaux-Sanguinet · Sanguinet (40)',
+    aka: ['Lac de Cazaux-Sanguinet'],
+    kind: 'lac',
+    lat: 44.4972,
+    lon: -1.0927,
+    coordSource: 'Windfinder — spot « Lac de Sanguinet / Sanguinet »',
+    coordCheckedOn: '2026-11-13',
+    accent: '#1FB3A6',
+    info:
+      'Très grand lac d’eau douce (près de 6 000 ha), eau claire, bords sableux peu profonds et centre profond. Une partie du lac, côté base aérienne de Cazaux, est réglementée : respectez le balisage.',
+    water: {
+      depth: 'profonde',
+      weed: false,
+      surface: 'clapot',
+      foil: 'ok',
+      foilNote: 'Bords peu profonds : partez au foil une fois sorti de la zone de bord. Respectez les zones balisées.',
+    },
+    defaults: {
+      sectors: sectors({ ideal: ['O', 'ONO', 'NO', 'OSO', 'NNO'] }),
+      speed: { minRideable: 10, idealMin: 14, idealMax: 25, maxRideable: 33 },
+      gusts: { maxGust: 40, maxGustFactor: 1.7 },
+      notes: 'Réglages initiaux à valider par les admins.',
+    },
+  },
+  {
+    id: 'la-nautique',
+    name: 'Narbonne – La Nautique',
+    shortName: 'La Nautique',
+    location: 'Port la Nautique · Étang de Bages-Sigean (11)',
+    kind: 'étang',
+    lat: 43.142,
+    lon: 3.0093,
+    coordSource: 'OpenStreetMap / Nominatim — port de « Port-la-Nautique »',
+    coordCheckedOn: '2026-11-13',
+    accent: '#BFE34A',
+    info:
+      'Spot de l’étang de Bages-Sigean, au sud de Narbonne : eau plate et Tramontane puissante, apprécié pour la vitesse. Plan d’eau peu profond.',
+    water: {
+      depth: 'faible',
+      weed: true,
+      surface: 'plat',
+      foil: 'prudence',
+      foilNote: 'Étang peu profond avec des herbiers : mât court et zones profondes uniquement.',
+    },
+    defaults: {
+      sectors: sectors({
+        ideal: ['O', 'ONO', 'NO', 'NNO'],
+        ok: ['N', 'OSO', 'SE', 'ESE', 'SSE'],
+        bad: ['NNE', 'NE', 'ENE', 'E', 'S', 'SSO', 'SO'],
+      }),
+      speed: { minRideable: 12, idealMin: 16, idealMax: 30, maxRideable: 40 },
+      gusts: { maxGust: 48, maxGustFactor: 1.6 },
+      notes: 'Réglages initiaux à valider par les admins. Tramontane = vent dominant, souvent forte.',
+    },
+  },
 ];
 
 export const SPOT_BY_ID: Record<string, SpotDefinition> = Object.fromEntries(SPOTS.map((s) => [s.id, s]));
