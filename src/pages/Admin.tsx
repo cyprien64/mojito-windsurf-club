@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, Check, Download, RotateCcw, Save, Upload } from 'lucide-react';
 import { SPOTS, SPOT_BY_ID } from '../config/spots';
 import { WEIGHT_LABELS, buildDefaultSettings } from '../config/scoring';
@@ -266,7 +267,8 @@ export function Admin() {
         </div>
       )}
 
-      {/* Barre d'actions */}
+      {/* Barre d'actions (portail : hors du <main> animé, sinon `fixed` ne fonctionne pas) */}
+      {createPortal(
       <div className="fixed inset-x-0 bottom-[68px] z-30 border-t border-mint-100 bg-cream-50/95 px-4 py-2.5 backdrop-blur md:bottom-0">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2">
           <button className="btn-primary" onClick={onSave} disabled={!!errors.length || !dirty}>
@@ -302,7 +304,9 @@ export function Admin() {
           </button>
           {dirty && <span className="text-xs font-bold text-rate-mid">Modifications non enregistrées</span>}
         </div>
-      </div>
+      </div>,
+      document.body,
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Bell, Camera, Compass, Gauge, History, Layers, LineChart, MapPin, Scale, Settings, Trophy } from 'lucide-react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Logo } from './Logo';
 import { LimeSlice, MintLeaf } from './Decor';
@@ -27,6 +28,10 @@ const SECONDARY = [
 export function Layout() {
   const nav = useMainNav();
   const location = useLocation();
+  // Revenir en haut de page à chaque changement de page
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
   const isActive = (item: { to: string; match?: string; end?: boolean }) =>
     item.end ? location.pathname === item.to : location.pathname.startsWith(item.match ?? item.to);
 
