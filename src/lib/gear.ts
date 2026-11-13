@@ -101,7 +101,9 @@ function windsurfAdvice(r: RiderProfile, w: WindInput, spot: SpotDefinition, cfg
   const extra = v - r.weightKg;
   const boardType =
     extra >= 85
-      ? 'Planche d’initiation large avec dérive'
+      ? beginner
+        ? 'Planche d’initiation large avec dérive'
+        : 'Planche light wind / longboard avec dérive'
       : extra >= 55
         ? 'Freeride gros volume / light wind'
         : extra >= 28
@@ -186,7 +188,7 @@ export function adviseGear(rider: RiderProfile, wind: WindInput, spot: SpotDefin
   const reasons: string[] = [];
 
   // --- score windsurf ---
-  let sWs = { initiation: 0.75, planant: 1, 'non planant': 0.35, 'trop fort': 0.1 }[ws.regime];
+  let sWs = { initiation: 0.75, planant: 1, 'non planant': 0.25, 'trop fort': 0.1 }[ws.regime];
   if (rider.level !== 'débutant' && ws.regime === 'planant' && wind.speed > cfg.speed.idealMax) sWs *= 0.85;
 
   // --- score wing ---
