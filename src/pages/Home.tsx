@@ -28,10 +28,10 @@ export function Home() {
     <div className="space-y-6">
       {/* Hero */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-mint-500 via-mint-600 to-lagoon-600 px-5 pb-16 pt-7 text-white shadow-lift sm:px-8 sm:pt-10">
-        <MintLeaf className="absolute -right-4 -top-3 h-28 w-28 animate-floaty opacity-90" style={{ '--r': '25deg' } as unknown as CSSProperties} />
-        <LimeSlice className="absolute right-20 top-16 h-14 w-14 animate-floaty opacity-95 [animation-delay:-2s]" />
+        <MintLeaf className="absolute -right-6 -top-6 h-20 w-20 animate-floaty opacity-40 sm:-right-4 sm:-top-3 sm:h-28 sm:w-28 sm:opacity-90" style={{ '--r': '25deg' } as unknown as CSSProperties} />
+        <LimeSlice className="absolute right-20 top-16 hidden h-14 w-14 animate-floaty opacity-95 [animation-delay:-2s] sm:block" />
         <MintLeaf className="absolute -left-5 bottom-10 h-16 w-16 rotate-180 opacity-40" />
-        <p className="text-xs font-bold uppercase tracking-[.25em] text-lime-300">Windsurf & wing · Landes · Béarn · Pays basque · Leucate</p>
+        <p className="relative pr-10 text-xs font-bold uppercase tracking-[.2em] text-lime-300 sm:pr-0">Windsurf & wing · Landes · Béarn · Pays basque · Leucate</p>
         <h1 className="mt-2 max-w-xl font-display text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
           MOJITO <span className="italic text-lemon-300">WINDSURF</span> CLUB
         </h1>
