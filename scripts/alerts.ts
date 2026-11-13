@@ -27,7 +27,7 @@ async function loadSettings() {
   const key = process.env.VITE_SUPABASE_ANON_KEY;
   if (url && key) {
     try {
-      const res = await fetch(`${url.replace(/\/$/, '')}/rest/v1/club_settings?id=eq.1&select=data`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+      const res = await fetch(`${url.replace(/\/$/, '')}/rest/v1/club_settings?id=eq.1&select=data`, { headers: { apikey: key } });
       const rows = (await res.json()) as { data: unknown }[];
       if (rows?.[0]?.data) return normalizeSettings(rows[0].data);
     } catch {

@@ -23,7 +23,9 @@ async function call<T>(path: string, init: RequestInit = {}, token?: string): Pr
     ...init,
     headers: {
       apikey: KEY,
-      Authorization: `Bearer ${token ?? KEY}`,
+      // Jeton utilisateur seulement si un admin est connecté : fonctionne avec
+      // l'ancienne clé « anon » comme avec la nouvelle clé « publishable ».
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       'Content-Type': 'application/json',
       ...(init.headers ?? {}),
     },
